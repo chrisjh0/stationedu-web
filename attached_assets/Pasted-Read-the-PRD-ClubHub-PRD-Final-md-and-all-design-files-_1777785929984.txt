@@ -1,0 +1,61 @@
+Read the PRD (ClubHub_PRD_Final.md) and all design files before starting (calendarcode.html, directorycode.html, leadershipcode.html, settingscode.html, yourclubcode.html and their matching screenshots). The HTML files are your pixel-level reference — replicate them exactly in React + Tailwind. Do not invent new layouts.
+Global design rules to apply on every screen:
+
+Font: Lexend for all headings, Inter for all body/labels/inputs
+Background: #F7F9FB canvas on every page
+Nav bar: floating pill, white, soft shadow, ClubHub logo left, nav links center (Calendar / Your Clubs / Leadership / Directory / Settings), bell icon + user avatar right. Active link = filled blue pill. Replicate exactly from the screenshots.
+Cards: white, border-radius: 24px, no border, soft shadow 0px 10px 30px rgba(15,23,42,0.04), internal padding 24px minimum
+Primary button: Electric Blue (#2563EB) gradient fill, white Lexend text, soft blue drop shadow
+Ghost button: no background, blue text, subtle blue hover state
+Input fields: soft slate background, border-radius: 16px, blue glow on focus
+Badges: pill-shaped, low-opacity color fill, full-opacity text
+Footer on every page: "ClubHub" left, centered links (Support / Privacy Policy / Terms of Service / Help Center), copyright right. Light gray, small Inter text.
+Toasts: fixed bottom-right, border-radius: 16px, color-coded
+
+Build all screens in one pass:
+App shell + routing:
+
+React Router v6 with protected routes redirecting to /login if no valid JWT
+Nav bar component as described above, shared across all pages
+Login page matching the design system
+All auth error states from PRD Section 4
+
+Calendar screen (reference: calendarcode.html + calendarscreen.png):
+
+Floating pill nav at top, month + "Today is [day]" heading in Lexend
+Weekly / Monthly toggle pills below the heading
+Week strip: 7 day columns, today highlighted in filled blue pill, green dot = free day, red dot = has club event
+Quick Filters row: "All Events" / "Enrolled" / "Available" pill chips, "All Events" active by default in blue
+Daily schedule section headed "[Weekday]'s Schedule" in bold Lexend
+Event cards: left colored accent bar (red = enrolled, green = available), time + duration on the left, badge + club name + location on the right, "Join" primary button on available events only
+Fetch from GET /api/calendar?start=&end=
+
+Directory screen (reference: directorycode.html + directoryscreen.png):
+
+"Explore Clubs" heading + subtitle
+Search bar left, category filter pills right (All Categories / Academic / Arts & Culture / Athletics / Professional / Service)
+4-column grid of club cards: icon top-left, category badge top-right, club name in Lexend, truncated description, member count + "View Details" ghost link at bottom
+"Load More Clubs" ghost pill button at bottom
+Clicking "View Details" opens the Club Detail Modal (PRD Section 9.5): name, type badge, description, leaders, upcoming events, Google Chat link, Enroll/Unenroll button, "Edit Club" for leaders
+Club avatars: deterministic color from club ID hash across 8+ color palette — never Math.random()
+
+Your Clubs screen (reference: yourclubcode.html + yourclubscreen.png):
+
+"Your Clubs" heading + "Manage and access all your active organizations." subtitle, "Find More Clubs" primary button top-right
+3-column grid of club cards: club avatar/photo top with optional "Lead" star badge, club name in bold Lexend, description, divider, meeting day/time + location with icons
+Last card in grid is always a dashed-border "Join a New Club" card with a + circle and link to Directory
+
+Leadership Hub screen (reference: leadershipcode.html + leadershipscreen.png):
+
+"Leadership Hub" heading + subtitle, "Create New Club" primary button top-right
+Hero banner: wide image collage card with "Welcome back, Leader." overlay text + member count subtitle; stat card beside it showing upcoming events count
+"Organizations You Lead" section: 2-column grid of club cards showing role badge (PRESIDENT / VICE PRESIDENT pill), club name, description, stats row (Active Members + Events this Month), and three action buttons: "Edit Details" / "Schedule Event" / delete icon
+Only show this page/nav item if the current user leads at least one club
+
+Settings screen (reference: settingscode.html + settingscreen.png):
+
+"Settings" heading + subtitle
+Left sidebar with 4 items: Account (active, blue filled), Notifications, Privacy, Appearance
+Right content panel — Account section: avatar with "Change Avatar" button + file type note, Full Name input (editable), Email Address input (locked with lock icon + note "Contact IT support to change your primary email")
+Notification Preferences section below: 6 toggle rows (Email Notifications, Event Reminders, New Club Alerts, Direct Messages, Weekly Digest, Mobile Push) — toggle UI only, no actual delivery
+"Save Changes" primary button bottom-right, calls PUT /api/me, shows success toast on save
