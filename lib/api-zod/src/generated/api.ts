@@ -41,6 +41,9 @@ export const GetUserSettingsResponse = zod.object({
     notifications_chat: zod.boolean(),
     notifications_digest: zod.boolean(),
     notifications_push_mobile: zod.boolean(),
+    privacy_show_profile: zod.boolean(),
+    privacy_show_memberships: zod.boolean(),
+    privacy_allow_dms: zod.boolean(),
   }),
 });
 
@@ -55,6 +58,9 @@ export const UpdateUserSettingsBody = zod.object({
   notifications_chat: zod.boolean().optional(),
   notifications_digest: zod.boolean().optional(),
   notifications_push_mobile: zod.boolean().optional(),
+  privacy_show_profile: zod.boolean().optional(),
+  privacy_show_memberships: zod.boolean().optional(),
+  privacy_allow_dms: zod.boolean().optional(),
 });
 
 export const UpdateUserSettingsResponse = zod.object({
@@ -68,6 +74,9 @@ export const UpdateUserSettingsResponse = zod.object({
     notifications_chat: zod.boolean(),
     notifications_digest: zod.boolean(),
     notifications_push_mobile: zod.boolean(),
+    privacy_show_profile: zod.boolean(),
+    privacy_show_memberships: zod.boolean(),
+    privacy_allow_dms: zod.boolean(),
   }),
 });
 
@@ -97,6 +106,7 @@ export const GetClubsResponse = zod.object({
       profile_photo: zod.string(),
       is_enrolled: zod.boolean(),
       is_leader: zod.boolean(),
+      member_count: zod.number(),
     }),
   ),
   hasMore: zod.boolean(),
@@ -339,6 +349,26 @@ export const RequestUploadUrlResponse = zod.object({
       contentType: zod.string().optional(),
     })
     .optional(),
+});
+
+/**
+ * @summary Get recent activity notifications for the current user
+ */
+export const GetNotificationsResponse = zod.object({
+  success: zod.boolean(),
+  unread_count: zod.number(),
+  notifications: zod.array(
+    zod.object({
+      id: zod.number(),
+      type: zod.string(),
+      title: zod.string(),
+      club_name: zod.string(),
+      event_date: zod.string(),
+      event_time: zod.string(),
+      location: zod.string(),
+      club_id: zod.number(),
+    }),
+  ),
 });
 
 /**

@@ -518,6 +518,27 @@ paths:
         "302":
           description: Redirect to Google
 
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [user]
+      summary: Get recent activity notifications for the current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /auth/google/callback:
     get:
       operationId: googleCallback
@@ -644,6 +665,12 @@ components:
           type: boolean
         notifications_push_mobile:
           type: boolean
+        privacy_show_profile:
+          type: boolean
+        privacy_show_memberships:
+          type: boolean
+        privacy_allow_dms:
+          type: boolean
       required:
         - full_name
         - email
@@ -653,6 +680,9 @@ components:
         - notifications_chat
         - notifications_digest
         - notifications_push_mobile
+        - privacy_show_profile
+        - privacy_show_memberships
+        - privacy_allow_dms
 
     UserSettingsResponse:
       type: object
@@ -681,6 +711,12 @@ components:
         notifications_digest:
           type: boolean
         notifications_push_mobile:
+          type: boolean
+        privacy_show_profile:
+          type: boolean
+        privacy_show_memberships:
+          type: boolean
+        privacy_allow_dms:
           type: boolean
 
     ClubLeaderEntry:
@@ -723,6 +759,8 @@ components:
           type: boolean
         is_leader:
           type: boolean
+        member_count:
+          type: integer
       required:
         - id
         - name
@@ -735,6 +773,7 @@ components:
         - profile_photo
         - is_enrolled
         - is_leader
+        - member_count
 
     ClubsListResponse:
       type: object
@@ -1029,6 +1068,51 @@ components:
       required:
         - success
         - events
+
+    NotificationItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        club_name:
+          type: string
+        event_date:
+          type: string
+        event_time:
+          type: string
+        location:
+          type: string
+        club_id:
+          type: integer
+      required:
+        - id
+        - type
+        - title
+        - club_name
+        - event_date
+        - event_time
+        - location
+        - club_id
+
+    NotificationsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        unread_count:
+          type: integer
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationItem"
+      required:
+        - success
+        - unread_count
+        - notifications
 
     RequestUploadUrlBody:
       type: object

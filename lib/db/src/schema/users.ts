@@ -13,6 +13,9 @@ export const usersTable = pgTable("users", {
   notifications_chat: boolean("notifications_chat").notNull().default(true),
   notifications_digest: boolean("notifications_digest").notNull().default(true),
   notifications_push_mobile: boolean("notifications_push_mobile").notNull().default(true),
+  privacy_show_profile: boolean("privacy_show_profile").notNull().default(true),
+  privacy_show_memberships: boolean("privacy_show_memberships").notNull().default(true),
+  privacy_allow_dms: boolean("privacy_allow_dms").notNull().default(true),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at"),
 });

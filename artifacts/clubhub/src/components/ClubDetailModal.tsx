@@ -10,9 +10,10 @@ import { format, parseISO } from "date-fns";
 interface ClubDetailModalProps {
   clubId: number;
   onClose: () => void;
+  onEnrollmentChange?: (clubId: number, enrolled: boolean) => void;
 }
 
-export function ClubDetailModal({ clubId, onClose }: ClubDetailModalProps) {
+export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDetailModalProps) {
   const { data, isLoading } = useGetClub(clubId, {
     query: { queryKey: getGetClubQueryKey(clubId), enabled: !!clubId }
   });
@@ -32,6 +33,7 @@ export function ClubDetailModal({ clubId, onClose }: ClubDetailModalProps) {
           queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
           queryClient.invalidateQueries({ queryKey: getGetClubQueryKey(club.id) });
+          onEnrollmentChange?.(club.id, false);
         },
         onError: (err) => toast.error(err.message || "Failed to unenroll")
       });
@@ -42,6 +44,7 @@ export function ClubDetailModal({ clubId, onClose }: ClubDetailModalProps) {
           queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
           queryClient.invalidateQueries({ queryKey: getGetClubQueryKey(club.id) });
+          onEnrollmentChange?.(club.id, true);
         },
         onError: (err) => toast.error(err.message || "Failed to enroll")
       });

@@ -19,6 +19,9 @@ interface Settings {
   notifications_chat: boolean;
   notifications_digest: boolean;
   notifications_push_mobile: boolean;
+  privacy_show_profile: boolean;
+  privacy_show_memberships: boolean;
+  privacy_allow_dms: boolean;
 }
 
 const TABS = [
@@ -77,6 +80,9 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
   const [notifChat, setNotifChat] = useState(settings.notifications_chat);
   const [notifDigest, setNotifDigest] = useState(settings.notifications_digest);
   const [notifPush, setNotifPush] = useState(settings.notifications_push_mobile);
+  const [privacyShowProfile, setPrivacyShowProfile] = useState(settings.privacy_show_profile ?? true);
+  const [privacyShowMemberships, setPrivacyShowMemberships] = useState(settings.privacy_show_memberships ?? true);
+  const [privacyAllowDms, setPrivacyAllowDms] = useState(settings.privacy_allow_dms ?? true);
 
   const handleSave = () => {
     updateMutation.mutate({
@@ -88,6 +94,9 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
         notifications_chat: notifChat,
         notifications_digest: notifDigest,
         notifications_push_mobile: notifPush,
+        privacy_show_profile: privacyShowProfile,
+        privacy_show_memberships: privacyShowMemberships,
+        privacy_allow_dms: privacyAllowDms,
       }
     }, {
       onSuccess: () => {
@@ -192,25 +201,30 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
           <h2 className="text-xl font-semibold mb-2">Privacy Settings</h2>
           <p className="text-secondary text-sm mb-8">Control who can see your profile and activity.</p>
 
-          <div className="space-y-4 max-w-md mb-8">
+          <div className="space-y-6 max-w-2xl">
             {[
-              { label: "Show Profile to Other Students", desc: "Allow club members to see your name and photo" },
-              { label: "Show Club Memberships", desc: "Display which clubs you belong to on your public profile" },
-              { label: "Allow Direct Messages", desc: "Let other students message you through ClubHub" },
-            ].map(({ label, desc }) => (
+              { label: "Show Profile to Other Students", desc: "Allow club members to see your name and photo", value: privacyShowProfile, set: setPrivacyShowProfile },
+              { label: "Show Club Memberships", desc: "Display which clubs you belong to on your public profile", value: privacyShowMemberships, set: setPrivacyShowMemberships },
+              { label: "Allow Direct Messages", desc: "Let other students message you through ClubHub", value: privacyAllowDms, set: setPrivacyAllowDms },
+            ].map(({ label, desc, value, set }) => (
               <div key={label} className="flex items-center justify-between py-3 border-b border-outline-variant/20">
                 <div>
                   <h4 className="font-medium text-on-surface">{label}</h4>
                   <p className="text-sm text-secondary">{desc}</p>
                 </div>
-                <Switch checked={true} onCheckedChange={() => {}} disabled />
+                <Switch checked={value} onCheckedChange={set} />
               </div>
             ))}
-          </div>
 
-          <div className="flex items-center gap-3 bg-surface-container rounded-2xl p-4 text-sm text-secondary">
-            <span className="material-symbols-outlined text-[20px] flex-shrink-0">info</span>
-            Fine-grained privacy controls are coming in a future update.
+            <div className="pt-6">
+              <Button
+                onClick={handleSave}
+                disabled={updateMutation.isPending}
+                className="bg-primary hover:bg-primary-container text-white rounded-xl px-8 shadow-sm"
+              >
+                {updateMutation.isPending ? "Saving..." : "Save Preferences"}
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -19,6 +19,7 @@ interface ClubItem {
   profile_photo: string;
   is_enrolled: boolean;
   is_leader: boolean;
+  member_count: number;
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -169,9 +170,15 @@ export default function DirectoryPage() {
                 <p className="text-secondary text-sm line-clamp-3 flex-grow mb-4">{club.description}</p>
 
                 <div className="mt-auto flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-xs text-secondary">
-                    <span className="material-symbols-outlined text-[15px]">schedule</span>
-                    <span>{club.default_day}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1 text-xs text-secondary">
+                      <span className="material-symbols-outlined text-[15px]">schedule</span>
+                      <span>{club.default_day}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-secondary">
+                      <span className="material-symbols-outlined text-[15px]">group</span>
+                      <span>{club.member_count} {club.member_count === 1 ? "member" : "members"}</span>
+                    </div>
                   </div>
                   <button
                     className="text-primary text-sm font-medium flex items-center gap-0.5 hover:gap-1.5 transition-all"
@@ -211,7 +218,13 @@ export default function DirectoryPage() {
       )}
 
       {selectedClubId && (
-        <ClubDetailModal clubId={selectedClubId} onClose={() => setSelectedClubId(null)} />
+        <ClubDetailModal
+          clubId={selectedClubId}
+          onClose={() => setSelectedClubId(null)}
+          onEnrollmentChange={(clubId, enrolled) => {
+            setAllClubs(prev => prev.map(c => c.id === clubId ? { ...c, is_enrolled: enrolled } : c));
+          }}
+        />
       )}
     </div>
   );

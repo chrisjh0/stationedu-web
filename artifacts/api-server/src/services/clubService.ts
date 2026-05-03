@@ -1,5 +1,5 @@
 import { db, clubsTable, clubLeadersTable, enrollmentsTable, eventsTable, usersTable, CLUB_TYPES } from "@workspace/db";
-import { eq, and, gte, asc, sql } from "drizzle-orm";
+import { eq, and, gte, asc, sql, inArray } from "drizzle-orm";
 import { ok, err, type ServiceResult } from "./types.js";
 import { htmlEscape, todayUtc } from "./utils.js";
 import { resolveLeaderStatus } from "./leaderHelpers.js";
@@ -16,6 +16,7 @@ export interface ClubListItem {
   profile_photo: string;
   is_enrolled: boolean;
   is_leader: boolean;
+  member_count: number;
 }
 
 export interface LeadingClub {
@@ -84,6 +85,17 @@ export async function listClubs(
 
   const enrolledClubIds = new Set(enrollments.map((e) => e.club_id));
 
+  let memberCountMap = new Map<number, number>();
+  const clubIds = clubs.map((c) => c.id);
+  if (clubIds.length > 0) {
+    const counts = await db
+      .select({ club_id: enrollmentsTable.club_id, count: sql<number>`count(*)` })
+      .from(enrollmentsTable)
+      .where(inArray(enrollmentsTable.club_id, clubIds))
+      .groupBy(enrollmentsTable.club_id);
+    memberCountMap = new Map(counts.map((r) => [r.club_id, Number(r.count)]));
+  }
+
   const result: ClubListItem[] = clubs.map((club) => {
     const isEnrolled = enrolledClubIds.has(club.id);
     const clubLeaders = leaders.filter((l) => l.club_id === club.id);
@@ -102,6 +114,7 @@ export async function listClubs(
       profile_photo: club.profile_photo,
       is_enrolled: isEnrolled,
       is_leader: isClubLeader,
+      member_count: memberCountMap.get(club.id) ?? 0,
     };
   });
 
@@ -195,7 +208,7 @@ export async function getClub(
   const club = clubArr[0];
   const today = todayUtc();
 
-  const [leaders, enrollment, upcomingEvents] = await Promise.all([
+  const [leaders, enrollment, upcomingEvents, memberCountArr] = await Promise.all([
     db.select().from(clubLeadersTable).where(eq(clubLeadersTable.club_id, clubId)),
     db
       .select()
@@ -209,6 +222,10 @@ export async function getClub(
       .from(eventsTable)
       .where(and(eq(eventsTable.club_id, clubId), gte(eventsTable.event_date, today)))
       .orderBy(asc(eventsTable.event_date), asc(eventsTable.event_time)),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(enrollmentsTable)
+      .where(eq(enrollmentsTable.club_id, clubId)),
   ]);
 
   const isEnrolled = enrollment.length > 0;
@@ -237,6 +254,7 @@ export async function getClub(
     profile_photo: club.profile_photo,
     is_enrolled: isEnrolled,
     is_leader: isClubLeader,
+    member_count: Number(memberCountArr[0]?.count ?? 0),
     leaders: leaders.map((l) => ({ name: l.name, role: l.role, email: l.email })),
     upcoming_events: upcomingEvents.map((e) => ({
       id: e.id,

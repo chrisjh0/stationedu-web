@@ -14,6 +14,9 @@ export const usersTable = {
   notifications_chat: { name: 'notifications_chat' },
   notifications_digest: { name: 'notifications_digest' },
   notifications_push_mobile: { name: 'notifications_push_mobile' },
+  privacy_show_profile: { name: 'privacy_show_profile' },
+  privacy_show_memberships: { name: 'privacy_show_memberships' },
+  privacy_allow_dms: { name: 'privacy_allow_dms' },
   updated_at: { name: 'updated_at' },
   $inferInsert: {} as Record<string, unknown>,
 } as any;
@@ -57,7 +60,7 @@ export const pool = { end: jest.fn() } as any;
 
 export function chain(result: unknown) {
   const c: any = {};
-  for (const m of ['from', 'where', 'innerJoin', 'leftJoin', 'set', 'values', 'orderBy', 'limit', 'offset']) {
+  for (const m of ['from', 'where', 'innerJoin', 'leftJoin', 'set', 'values', 'orderBy', 'groupBy', 'limit', 'offset']) {
     c[m] = jest.fn().mockReturnValue(c);
   }
   c.returning = jest.fn().mockResolvedValue(result);
@@ -84,3 +87,4 @@ export function gte(..._args: unknown[]) { return {}; }
 export function lte(..._args: unknown[]) { return {}; }
 export function asc(..._args: unknown[]) { return {}; }
 export function sql(..._args: unknown[]) { return {}; }
+export function inArray(..._args: unknown[]) { return {}; }

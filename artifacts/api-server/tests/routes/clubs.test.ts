@@ -49,7 +49,8 @@ describe('Clubs Routes', () => {
         .mockReturnValueOnce(chain([TEST_USER]))
         .mockReturnValueOnce(chain([TEST_CLUB]))
         .mockReturnValueOnce(chain([TEST_ENROLLMENT]))
-        .mockReturnValueOnce(chain([TEST_LEADER]));
+        .mockReturnValueOnce(chain([TEST_LEADER]))
+        .mockReturnValueOnce(chain([{ club_id: 1, count: 1 }]));
 
       const res = await request(app)
         .get('/api/clubs')
@@ -63,6 +64,7 @@ describe('Clubs Routes', () => {
         name: 'Robotics Club',
         is_enrolled: true,
         is_leader: true,
+        member_count: 1,
       });
     });
 
@@ -138,7 +140,8 @@ describe('Clubs Routes', () => {
         .mockReturnValueOnce(chain([TEST_CLUB]))
         .mockReturnValueOnce(chain([TEST_LEADER]))
         .mockReturnValueOnce(chain([TEST_ENROLLMENT]))
-        .mockReturnValueOnce(chain([]));
+        .mockReturnValueOnce(chain([]))
+        .mockReturnValueOnce(chain([{ count: 1 }]));
 
       const res = await request(app)
         .get('/api/clubs/1')
@@ -151,6 +154,7 @@ describe('Clubs Routes', () => {
         name: 'Robotics Club',
         is_enrolled: true,
         is_leader: true,
+        member_count: 1,
         leaders: [{ name: 'Test User', role: 'President', email: 'test@test.com' }],
         upcoming_events: [],
       });

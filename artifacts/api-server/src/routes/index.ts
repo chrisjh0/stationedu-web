@@ -8,12 +8,14 @@ import enrollmentRouter from "./enrollment.js";
 import calendarRouter from "./calendar.js";
 import leadersRouter from "./leaders.js";
 import storageRouter from "./storage.js";
+import notificationsRouter from "./notifications.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(authRouter);
 router.use(userRouter);
+router.use(notificationsRouter);
 router.use(storageRouter);
 router.use(clubsRouter);
 router.use(eventsRouter);

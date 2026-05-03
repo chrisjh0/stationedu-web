@@ -175,7 +175,8 @@ describe('Service edge cases', () => {
         .mockReturnValueOnce(chain([TEST_CLUB]))
         .mockReturnValueOnce(chain([leaderByEmail]))
         .mockReturnValueOnce(chain([enrollment]))
-        .mockReturnValueOnce(chain([]));
+        .mockReturnValueOnce(chain([]))
+        .mockReturnValueOnce(chain([{ count: 1 }]));
       mockDb.update.mockReturnValueOnce(chain(undefined));
 
       const res = await request(app)

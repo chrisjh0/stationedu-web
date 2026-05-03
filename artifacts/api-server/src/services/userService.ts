@@ -19,6 +19,9 @@ export interface UserSettings {
   notifications_chat: boolean;
   notifications_digest: boolean;
   notifications_push_mobile: boolean;
+  privacy_show_profile: boolean;
+  privacy_show_memberships: boolean;
+  privacy_allow_dms: boolean;
 }
 
 export interface UpdateSettingsInput {
@@ -29,6 +32,9 @@ export interface UpdateSettingsInput {
   notifications_chat?: boolean;
   notifications_digest?: boolean;
   notifications_push_mobile?: boolean;
+  privacy_show_profile?: boolean;
+  privacy_show_memberships?: boolean;
+  privacy_allow_dms?: boolean;
 }
 
 export async function getMe(userId: number): Promise<ServiceResult<UserProfile>> {
@@ -72,6 +78,9 @@ export async function getSettings(userId: number): Promise<ServiceResult<UserSet
     notifications_chat: u.notifications_chat,
     notifications_digest: u.notifications_digest,
     notifications_push_mobile: u.notifications_push_mobile,
+    privacy_show_profile: u.privacy_show_profile,
+    privacy_show_memberships: u.privacy_show_memberships,
+    privacy_allow_dms: u.privacy_allow_dms,
   });
 }
 
@@ -102,6 +111,15 @@ export async function updateSettings(
   if (input.notifications_push_mobile !== undefined) {
     updates.notifications_push_mobile = Boolean(input.notifications_push_mobile);
   }
+  if (input.privacy_show_profile !== undefined) {
+    updates.privacy_show_profile = Boolean(input.privacy_show_profile);
+  }
+  if (input.privacy_show_memberships !== undefined) {
+    updates.privacy_show_memberships = Boolean(input.privacy_show_memberships);
+  }
+  if (input.privacy_allow_dms !== undefined) {
+    updates.privacy_allow_dms = Boolean(input.privacy_allow_dms);
+  }
 
   await db.update(usersTable).set(updates).where(eq(usersTable.id, userId));
 
@@ -125,5 +143,8 @@ export async function updateSettings(
     notifications_chat: u.notifications_chat,
     notifications_digest: u.notifications_digest,
     notifications_push_mobile: u.notifications_push_mobile,
+    privacy_show_profile: u.privacy_show_profile,
+    privacy_show_memberships: u.privacy_show_memberships,
+    privacy_allow_dms: u.privacy_allow_dms,
   });
 }

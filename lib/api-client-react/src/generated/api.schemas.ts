@@ -45,6 +45,9 @@ export interface UserSettings {
   notifications_chat: boolean;
   notifications_digest: boolean;
   notifications_push_mobile: boolean;
+  privacy_show_profile: boolean;
+  privacy_show_memberships: boolean;
+  privacy_allow_dms: boolean;
 }
 
 export interface UserSettingsResponse {
@@ -60,6 +63,9 @@ export interface UpdateUserSettingsBody {
   notifications_chat?: boolean;
   notifications_digest?: boolean;
   notifications_push_mobile?: boolean;
+  privacy_show_profile?: boolean;
+  privacy_show_memberships?: boolean;
+  privacy_allow_dms?: boolean;
 }
 
 export interface ClubLeaderEntry {
@@ -91,6 +97,7 @@ export interface ClubSummary {
   profile_photo: string;
   is_enrolled: boolean;
   is_leader: boolean;
+  member_count: number;
 }
 
 export interface ClubsListResponse {
@@ -236,6 +243,23 @@ export interface CalendarEvent {
 export interface CalendarEventsResponse {
   success: boolean;
   events: CalendarEvent[];
+}
+
+export interface NotificationItem {
+  id: number;
+  type: string;
+  title: string;
+  club_name: string;
+  event_date: string;
+  event_time: string;
+  location: string;
+  club_id: number;
+}
+
+export interface NotificationsResponse {
+  success: boolean;
+  unread_count: number;
+  notifications: NotificationItem[];
 }
 
 export interface RequestUploadUrlBody {

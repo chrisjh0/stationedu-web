@@ -1,0 +1,26 @@
+Do all of the following in a single pass:
+PART 1 - Member Count + Real-Time Enrollment State
+
+Add a member_count field to the GET /clubs list response. The server should count distinct enrollments per club via a subquery or .count(). Update the OpenAPI spec, run codegen, and display the count with a people (groups) Material Symbol icon at the bottom-left of each Directory card, next to the meeting day.
+After a user joins a club from the ClubDetailModal opened from the Directory page, the card still shows "View Details" without the green "Enrolled" chip until a page refresh. Fix this by invalidating or updating the local club list state when the useEnrollInClub mutation succeeds inside ClubDetailModal, so the Directory cards reflect enrollment immediately without a reload.
+
+PART 2 - Persist Privacy + Notification Settings
+
+The Settings Privacy tab shows three toggles (Show Profile, Show Club Memberships, Allow DMs) but they are read-only. Add three boolean columns to the user settings table (privacy_show_profile, privacy_show_memberships, privacy_allow_dms), run the migration, add them to the GET and PATCH /api/user/settings endpoints, run codegen, and make the switches save on click with a success toast.
+The Settings Notifications tab toggles (Email Notifications, Event Reminders, New Club Alerts, Direct Messages, Weekly Digest, Mobile Push) should also persist. Confirm these are already saving via PATCH /api/user/settings — if not, wire them up the same way as the Privacy toggles above.
+
+PART 3 - NavBar Notifications Bell
+
+The bell icon in the NavBar is currently decorative. Make it functional: add a GET /api/notifications endpoint that returns the unread notification count for the current user. Poll it every 60 seconds in the NavBar and show a small red dot badge over the bell icon when count is greater than 0. Clicking the bell opens a slide-in drawer from the right, matching the mobile menu drawer style, listing recent activity from the user's enrolled clubs — upcoming events within the next 7 days formatted as "Club Name - Event Title - Day, Time". Include a "Mark all as read" button at the top of the drawer that clears the badge.
+
+PART 4 - Google OAuth
+
+Remove the Dev Login Bypass button from the login page completely. Confirm the full OAuth flow works end-to-end using the existing /api/auth/google/login and /api/auth/google/callback routes: click Sign in with Google → Google consent screen → redirect back → JWT stored in localStorage → land on Calendar page. Test the ALLOWED_EMAIL_DOMAIN check by attempting to log in with a non-school email and confirming the correct error message appears.
+
+When completely finished, give me a structured report with exactly these sections:
+
+COMPLETED - Every fix from Parts 1-4 that is fully done and working
+PARTIALLY DONE - Anything started but not fully finished, with exact explanation of what is missing and why
+STILL BROKEN - Any bugs or issues that still exist after your changes
+TYPESCRIPT ERRORS - Full output of tsc --noEmit
+NEXT TASKS - The most impactful remaining improvements in priority order, written as prompts I can paste directly back into you
