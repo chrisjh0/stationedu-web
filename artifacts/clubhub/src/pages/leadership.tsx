@@ -44,7 +44,7 @@ export default function LeadershipPage() {
     <div className="max-w-5xl mx-auto px-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
         <div>
-          <h1 className="text-3xl font-semibold text-on-surface">Leadership Hub</h1>
+          <h1 className="text-3xl font-bold font-lexend text-on-surface">Leadership Hub</h1>
           <p className="text-secondary mt-1">Manage your clubs and events</p>
         </div>
         <Button 

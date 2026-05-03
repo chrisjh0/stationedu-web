@@ -22,10 +22,10 @@ interface Settings {
 }
 
 const TABS = [
-  { id: "Account", icon: "person" },
+  { id: "Account",       icon: "person" },
   { id: "Notifications", icon: "notifications" },
-  { id: "Privacy", icon: "lock", disabled: true },
-  { id: "Appearance", icon: "palette", disabled: true },
+  { id: "Privacy",       icon: "lock" },
+  { id: "Appearance",    icon: "palette" },
 ];
 
 export default function SettingsPage() {
@@ -39,28 +39,22 @@ export default function SettingsPage() {
   return (
     <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row gap-10">
       <div className="w-full md:w-64 flex-shrink-0">
-        <h1 className="text-2xl font-semibold mb-6">Settings</h1>
+        <h1 className="text-2xl font-bold font-lexend mb-6 text-on-surface">Settings</h1>
         <nav className="flex flex-col gap-1">
           {TABS.map(tab => (
             <button
               key={tab.id}
-              onClick={() => !tab.disabled && setActiveTab(tab.id)}
-              disabled={tab.disabled}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left
-                ${activeTab === tab.id ? "bg-primary/10 text-primary" : tab.disabled ? "opacity-40 cursor-not-allowed text-secondary" : "hover:bg-surface-container text-secondary"}`}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left ${activeTab === tab.id ? "bg-primary text-white" : "hover:bg-surface-container text-secondary"}`}
             >
               <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
               {tab.id}
-              {tab.disabled && <span className="ml-auto text-[10px] uppercase tracking-wider bg-surface-container px-2 py-0.5 rounded">Soon</span>}
             </button>
           ))}
         </nav>
       </div>
 
       <div className="flex-grow bg-white rounded-3xl shadow-sm p-8 border border-outline-variant/20">
-        {/* key=email ensures the form remounts (resetting all useState) when
-            settings first load. Since email never changes for a given user,
-            there's no unwanted reset after a save+refetch. */}
         <SettingsForm
           key={data.settings.email}
           settings={data.settings as Settings}
@@ -71,7 +65,6 @@ export default function SettingsPage() {
   );
 }
 
-// Inner form: initialized from props — no useEffect data-sync needed.
 function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: string }) {
   const { user, setUser } = useAuth();
   const updateMutation = useUpdateUserSettings();
@@ -190,6 +183,64 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
                 {updateMutation.isPending ? "Saving..." : "Save Preferences"}
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "Privacy" && (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <h2 className="text-xl font-semibold mb-2">Privacy Settings</h2>
+          <p className="text-secondary text-sm mb-8">Control who can see your profile and activity.</p>
+
+          <div className="space-y-4 max-w-md mb-8">
+            {[
+              { label: "Show Profile to Other Students", desc: "Allow club members to see your name and photo" },
+              { label: "Show Club Memberships", desc: "Display which clubs you belong to on your public profile" },
+              { label: "Allow Direct Messages", desc: "Let other students message you through ClubHub" },
+            ].map(({ label, desc }) => (
+              <div key={label} className="flex items-center justify-between py-3 border-b border-outline-variant/20">
+                <div>
+                  <h4 className="font-medium text-on-surface">{label}</h4>
+                  <p className="text-sm text-secondary">{desc}</p>
+                </div>
+                <Switch checked={true} onCheckedChange={() => {}} disabled />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 bg-surface-container rounded-2xl p-4 text-sm text-secondary">
+            <span className="material-symbols-outlined text-[20px] flex-shrink-0">info</span>
+            Fine-grained privacy controls are coming in a future update.
+          </div>
+        </div>
+      )}
+
+      {activeTab === "Appearance" && (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <h2 className="text-xl font-semibold mb-2">Appearance</h2>
+          <p className="text-secondary text-sm mb-8">Customise how ClubHub looks for you.</p>
+
+          <div className="grid grid-cols-2 gap-4 max-w-md mb-8">
+            {[
+              { label: "Light", icon: "light_mode", active: true },
+              { label: "Dark", icon: "dark_mode", active: false },
+              { label: "System", icon: "brightness_auto", active: false },
+              { label: "High Contrast", icon: "contrast", active: false },
+            ].map(({ label, icon, active }) => (
+              <button
+                key={label}
+                disabled
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all opacity-60 cursor-not-allowed ${active ? "border-primary bg-primary/5" : "border-outline-variant/30 bg-surface-container"}`}
+              >
+                <span className="material-symbols-outlined text-[28px] text-secondary">{icon}</span>
+                <span className="text-sm font-medium text-secondary">{label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 bg-surface-container rounded-2xl p-4 text-sm text-secondary">
+            <span className="material-symbols-outlined text-[20px] flex-shrink-0">info</span>
+            Theme switching will be available in an upcoming release.
           </div>
         </div>
       )}

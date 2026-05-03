@@ -1,0 +1,62 @@
+Read the entire codebase carefully before making any changes. Then fix and improve everything below in a single pass.
+SECTION 1 - YOUR CLUBS PAGE (clubs.tsx)
+The Your Clubs page is missing most of the design from yourclubscreen.png. Rebuild it to match exactly:
+
+Header: "Your Clubs" in bold Lexend on the left, subtitle "Manage and access all your active organizations." below it, "Find More Clubs" primary blue gradient button on the right linking to /directory
+3-column card grid where each card shows: club photo or avatar (with deterministic color from getClubColor), optional "Lead" star badge in top-right corner if the user is a leader of that club, club name in bold Lexend, description text, a divider line, then meeting day/time with a calendar icon and location with a pin icon
+The last card in the grid is always a dashed-border "Join a New Club" card with a + circle icon, "Join a New Club" heading, and "Browse the directory to find more organizations." subtitle, linking to /directory
+Currently the page only shows enrolled clubs in a circle-avatar layout with no subtitle, no "Find More Clubs" button, no "Lead" badge, no meeting info row, and no "Join a New Club" card — fix all of this
+
+
+
+SECTION 2 - CALENDAR PAGE (calendar.tsx)
+Fix the following issues to match calendarscreen.png exactly:
+
+The month heading and "Today is [Weekday, Month Day]" subtitle are missing — add them above the Weekly/Monthly toggle, styled in bold Lexend
+The Weekly/Monthly toggle pills are present but the active state uses bg-white shadow-sm which is too subtle — the active pill should be a filled blue pill (bg-primary text-white) matching the design
+The filter chips row label "Quick Filters" is missing above the All Events / Enrolled / Available pills — add it
+The active filter chip should use bg-primary text-white not bg-secondary
+Event cards need a colored left accent bar: red (bg-red-500) for enrolled events, green (bg-green-500) for available events — currently border-l-4 only shows for enrolled. Show the green bar for available events too
+The "Enrolled" badge inside enrolled event cards should be styled as a red pill (bg-red-100 text-red-600), and available events should show a green "Available" badge (bg-green-100 text-green-600) plus a "Join" blue gradient button on the right
+The monthly view toggle currently does nothing — wire it up to show a full month grid where clicking a day switches back to the daily view for that day
+
+
+
+SECTION 3 - DIRECTORY PAGE (directory.tsx)
+Fix the following issues to match directoryscreen.png exactly:
+
+The filter section is currently a white card with Type, Day, and Status rows stacked — the design shows category pills in a single horizontal row (All Categories / Academic / Arts & Culture / Athletics / Professional / Service) with the search bar to the left. Simplify to match: search bar on the left, single category filter row on the right
+Club cards are currently 3-column — change to 4-column on large screens to match the design (lg:grid-cols-4)
+Each club card should show the category icon (a relevant Material Symbol for each club type) in the top-left of the card, category badge top-right, not the day
+The "View Details" link at the bottom of each card should be a ghost blue text link, not the current full-width "Join Club" button — move the join action into the Club Detail Modal only
+The member count should show with a people icon on the bottom-left of each card
+
+
+
+SECTION 4 - NAVBAR (NavBar.tsx)
+The navbar is well-built but has two issues:
+
+The active nav link uses bg-primary/10 text-primary which is a light blue tint — it should be a fully filled blue pill (bg-primary text-white) to match the design screenshots
+The Leadership Hub link should only appear in the nav if the current user leads at least one club. Add a useGetLeadingClubs() check and conditionally render that nav item
+
+
+
+SECTION 5 - SEED DATA
+Create a seed script at the correct location for this Replit monorepo structure. The seed should create:
+
+8 clubs with varied types (Committee, Union, Club, Team), different default days, descriptions, and locations
+3 test users: one student, one leader of 2 clubs, one leader of 1 club
+15 events spread across the next 30 days assigned to the clubs
+Enrollment records connecting the student user to 3 of the clubs
+Run the seed and confirm data loads correctly on all pages
+
+
+
+SECTION 6 - GLOBAL POLISH
+Apply these fixes across all pages:
+
+Every page should have pt-28 or equivalent top padding so content is not hidden behind the fixed floating navbar
+The footer (Support / Privacy Policy / Terms of Service / Help Center links + copyright) should appear on every page — check that it renders on Calendar, Directory, Your Clubs, Leadership Hub, and Settings
+All page headings (h1) must use the Lexend font — audit every page and add font-lexend where missing
+The Settings page left sidebar tabs (Account, Notifications, Privacy, Appearance) should actually switch the content panel when clicked — currently only Account content is shown. Add at minimum a placeholder panel for each tab so clicking them doesn't show a broken state
+Run tsc --noEmit and fix every TypeScript error before finishing
