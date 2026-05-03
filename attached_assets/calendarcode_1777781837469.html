@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClubHub - Calendar</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Lexend:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#eeefff",
+                        "on-tertiary-container": "#edf0ff",
+                        "surface": "#f7f9fb",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface-tint": "#0053db",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary-fixed": "#001a42",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#d8e2ff",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-background": "#191c1e",
+                        "primary-container": "#2563eb",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#00174b",
+                        "secondary-container": "#dae2fd",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-dim": "#d8dadc",
+                        "inverse-on-surface": "#eff1f3",
+                        "secondary": "#565e74",
+                        "surface-bright": "#f7f9fb",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "tertiary-container": "#0f69dc",
+                        "primary-fixed": "#dbe1ff",
+                        "outline": "#737686",
+                        "inverse-surface": "#2d3133",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "error-container": "#ffdad6",
+                        "primary": "#004ac6",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#0051b1",
+                        "on-secondary-fixed": "#131b2e",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-container-highest": "#e0e3e5",
+                        "background": "#f7f9fb",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "surface-variant": "#e0e3e5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#434655",
+                        "surface-container": "#eceef0",
+                        "on-secondary-container": "#5c647a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "xl": "64px",
+                        "container-padding": "32px",
+                        "gutter": "24px",
+                        "sm": "12px",
+                        "lg": "40px",
+                        "base": "8px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Lexend"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "h1": ["Lexend"],
+                        "button": ["Inter"],
+                        "h3": ["Lexend"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "h1": ["40px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "button": ["15px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "h3": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen overflow-x-hidden">
+<!-- Floating Top Dock Navigation -->
+<nav class="fixed top-gutter left-1/2 -translate-x-1/2 z-50 flex items-center bg-surface-container-lowest/70 backdrop-blur-[20px] rounded-full px-gutter py-sm shadow-[0px_10px_30px_rgba(15,23,42,0.08)] border border-surface-container-highest/50">
+<!-- Brand / Logo Area -->
+<div class="flex items-center gap-base mr-lg">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-h3 font-bold">
+                C
+            </div>
+<span class="font-h3 text-on-surface tracking-tight hidden md:block">ClubHub</span>
+</div>
+<!-- Navigation Links -->
+<div class="flex items-center gap-sm md:gap-md">
+<!-- Active State -->
+<a class="flex items-center gap-base px-md py-sm rounded-full bg-primary/10 text-primary relative shadow-[0_0_15px_rgba(37,99,235,0.05)] transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px] shadow-[0_0_15px_rgba(37,99,235,0.1)]">calendar_today</span>
+<span class="font-button font-bold">Calendar</span>
+</a>
+<a class="flex items-center gap-base px-sm py-xs rounded-full text-secondary hover:bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+<span class="font-button hidden md:block">Your Clubs</span>
+</a>
+<a class="flex items-center gap-base px-sm py-xs rounded-full text-secondary hover:bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">leaderboard</span>
+<span class="font-button hidden md:block">Leadership</span>
+</a>
+<a class="flex items-center gap-base px-sm py-xs rounded-full text-secondary hover:bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">contact_page</span>
+<span class="font-button hidden md:block">Directory</span>
+</a>
+<a class="flex items-center gap-base px-sm py-xs rounded-full text-secondary hover:bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-button hidden md:block">Settings</span>
+</a>
+</div>
+<!-- Right Actions (Profile/Notifications) -->
+<div class="flex items-center gap-sm ml-lg pl-md border-l border-surface-variant">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:bg-surface-variant/50 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden border-2 border-surface-container-lowest shadow-sm cursor-pointer">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A small, circular profile picture placeholder showing a generic user avatar. The avatar is set against a clean, light-mode background, fitting seamlessly into a modern, minimalist interface. The overall aesthetic is professional, crisp, and subtle, aligning with a sophisticated educational administration platform's visual identity." src="https://lh3.googleusercontent.com/aida/ADBb0ugZBS_kT_qR5Cpg1d9a5U5dlGaNPqH7AbfnFrCBNsik6LfPZ18UwIVF6xP57TSug0b1V6XT8nY5rocxpxXEE92PM21OZ-SOteNGCrigGmM4eJR2nFiA7ZBEzCthRcmAsshyp2SYuTJUwAOGYA8wBm2Psn1MZb4gyqmcwL-dO954oe6S6csPChrBipeRidAfE67Yau9Km0SLiGFG1sQqPxR8r9EscqOOtKzV0hz0-KFEaxv0ilVlCejeTboy8ijClh_6qtXq9zfXxr4"/>
+</div>
+</div>
+</nav>
+<main class="pt-[140px] max-w-4xl mx-auto px-container-padding flex flex-col gap-lg pb-16"><div class="flex flex-col items-center text-center">
+<h1 class="font-h1 text-h1 text-on-surface">October 2023</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">Today is Wednesday, Oct 18</p>
+<div class="flex items-center bg-surface-container-low rounded-full p-1 border border-surface-container-highest/50 w-fit">
+<button class="px-md py-[6px] rounded-full bg-surface-container-lowest text-primary font-button shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">Weekly</button>
+<button class="px-md py-[6px] rounded-full text-secondary font-button hover:text-on-surface transition-colors">Monthly</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-[0px_10px_30px_rgba(15,23,42,0.04)] flex justify-between items-center overflow-x-auto w-full">
+<button class="flex flex-col items-center p-sm rounded-lg hover:bg-surface-container-low transition-colors min-w-[48px]">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-xs">M</span>
+<span class="font-body-md text-body-md text-on-surface">16</span>
+<div class="flex gap-1 mt-xs h-1"></div>
+</button>
+<button class="flex flex-col items-center p-sm rounded-lg hover:bg-surface-container-low transition-colors min-w-[48px]">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-xs">T</span>
+<span class="font-body-md text-body-md text-on-surface">17</span>
+<div class="flex gap-1 mt-xs h-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#22c55e]"></span>
+</div>
+</button>
+<button class="flex flex-col items-center p-sm rounded-lg bg-primary-container text-on-primary-container min-w-[48px]">
+<span class="font-label-caps text-label-caps mb-xs">W</span>
+<span class="font-body-md text-body-md font-semibold">18</span>
+<div class="flex gap-1 mt-xs h-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#22c55e]"></span>
+</div>
+</button>
+<button class="flex flex-col items-center p-sm rounded-lg hover:bg-surface-container-low transition-colors min-w-[48px]">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-xs">T</span>
+<span class="font-body-md text-body-md text-on-surface">19</span>
+<div class="flex gap-1 mt-xs h-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></span>
+</div>
+</button>
+<button class="flex flex-col items-center p-sm rounded-lg hover:bg-surface-container-low transition-colors min-w-[48px]">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-xs">F</span>
+<span class="font-body-md text-body-md text-on-surface">20</span>
+<div class="flex gap-1 mt-xs h-1"></div>
+</button>
+<button class="flex flex-col items-center p-sm rounded-lg hover:bg-surface-container-low transition-colors min-w-[48px] opacity-50">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-xs">S</span>
+<span class="font-body-md text-body-md text-on-surface">21</span>
+<div class="flex gap-1 mt-xs h-1"></div>
+</button>
+<button class="flex flex-col items-center p-sm rounded-lg hover:bg-surface-container-low transition-colors min-w-[48px] opacity-50">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-xs">S</span>
+<span class="font-body-md text-body-md text-on-surface">22</span>
+<div class="flex gap-1 mt-xs h-1"></div>
+</button>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<h3 class="font-h3 text-h3 text-on-surface mb-xs">Quick Filters</h3>
+<div class="flex flex-wrap justify-center gap-sm">
+<span class="px-sm py-xs rounded-full bg-primary-container text-on-primary-container font-label-caps text-label-caps cursor-pointer">All Events</span>
+<span class="px-sm py-xs rounded-full bg-surface-container text-on-surface font-label-caps text-label-caps cursor-pointer">Enrolled</span>
+<span class="px-sm py-xs rounded-full bg-surface-container text-on-surface font-label-caps text-label-caps cursor-pointer">Available</span>
+</div>
+</div>
+<div class="flex flex-col gap-md">
+<h2 class="font-h2 text-h2 text-on-surface mb-sm text-center">Wednesday's Schedule</h2>
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-[0px_10px_30px_rgba(15,23,42,0.04)] flex flex-col md:flex-row gap-md relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-[#ef4444]"></div>
+<div class="flex-shrink-0 flex flex-col items-start md:items-end md:w-24 border-r border-outline-variant/30 pr-md">
+<span class="font-h3 text-h3 text-on-surface">10:00</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">AM</span>
+<span class="font-body-md text-body-md text-on-surface-variant mt-xs">1 hr</span>
+</div>
+<div class="flex-grow flex flex-col justify-center">
+<div class="flex justify-between items-start mb-xs">
+<span class="px-xs py-1 rounded bg-[#ef4444]/10 text-[#ef4444] font-label-caps text-label-caps">Enrolled</span>
+<button class="text-secondary hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<h3 class="font-h3 text-h3 text-on-surface">Debate Team Practice</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Debate Society</p>
+<div class="flex items-center gap-xs mt-sm text-secondary">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+<span class="font-body-md text-body-md">Room 4B</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-[0px_10px_30px_rgba(15,23,42,0.04)] flex flex-col md:flex-row gap-md relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-[#22c55e]"></div>
+<div class="flex-shrink-0 flex flex-col items-start md:items-end md:w-24 border-r border-outline-variant/30 pr-md">
+<span class="font-h3 text-h3 text-on-surface">02:30</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">PM</span>
+<span class="font-body-md text-body-md text-on-surface-variant mt-xs">2 hr</span>
+</div>
+<div class="flex-grow flex flex-col justify-center">
+<div class="flex justify-between items-start mb-xs">
+<span class="px-xs py-1 rounded bg-[#22c55e]/10 text-[#16a34a] font-label-caps text-label-caps">Available</span>
+<button class="px-sm py-xs rounded bg-primary text-on-primary font-button text-button shadow-sm hover:bg-surface-tint transition-colors">Join</button>
+</div>
+<h3 class="font-h3 text-h3 text-on-surface">Robotics Club Interest Meeting</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Future Engineers</p>
+<div class="flex items-center gap-xs mt-sm text-secondary">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+<span class="font-body-md text-body-md">Science Lab 2</span>
+</div>
+</div>
+</div>
+</div></main>
+<!-- Footer -->
+<footer class="flex flex-col md:flex-row justify-between items-center py-10 px-8 w-full max-w-7xl mx-auto border-t border-slate-100 mt-xl bg-slate-50">
+<div class="text-lg font-bold text-slate-900 mb-4 md:mb-0">ClubHub</div>
+<div class="flex gap-4">
+<a class="font-lexend text-xs text-slate-400 hover:text-blue-600 underline underline-offset-4 transition-all duration-300" href="#">Support</a>
+<a class="font-lexend text-xs text-slate-400 hover:text-blue-600 underline underline-offset-4 transition-all duration-300" href="#">Privacy Policy</a>
+<a class="font-lexend text-xs text-slate-400 hover:text-blue-600 underline underline-offset-4 transition-all duration-300" href="#">Terms of Service</a>
+<a class="font-lexend text-xs text-slate-400 hover:text-blue-600 underline underline-offset-4 transition-all duration-300" href="#">Help Center</a>
+</div>
+<div class="font-lexend text-xs text-slate-400 mt-4 md:mt-0">© 2024 ClubHub Management. All rights reserved.</div>
+</footer>
+</body></html>

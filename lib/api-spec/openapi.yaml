@@ -3,20 +3,32 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ClubHub API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: user
+    description: User profile and settings
+  - name: clubs
+    description: Club management
+  - name: events
+    description: Event management
+  - name: enrollment
+    description: Club enrollment
+  - name: calendar
+    description: Calendar data
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,7 +36,475 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /user/me:
+    get:
+      operationId: getCurrentUser
+      tags: [user]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserMeResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/settings:
+    get:
+      operationId: getUserSettings
+      tags: [user]
+      summary: Get user settings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettingsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateUserSettings
+      tags: [user]
+      summary: Update user settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserSettingsBody"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettingsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /clubs:
+    get:
+      operationId: getClubs
+      tags: [clubs]
+      summary: Get all clubs with enrollment status
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All clubs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClubsListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createClub
+      tags: [clubs]
+      summary: Create a new club
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClubBody"
+      responses:
+        "201":
+          description: Club created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateClubResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate club name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /clubs/leading:
+    get:
+      operationId: getLeadingClubs
+      tags: [clubs]
+      summary: Get clubs led by the current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Led clubs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadingClubsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /clubs/{id}:
+    get:
+      operationId: getClub
+      tags: [clubs]
+      summary: Get full club details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Club details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClubDetailResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateClub
+      tags: [clubs]
+      summary: Update club details (leaders only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClubBody"
+      responses:
+        "200":
+          description: Club updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteClub
+      tags: [clubs]
+      summary: Delete club (leaders only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Club deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /clubs/{id}/events:
+    get:
+      operationId: getClubEvents
+      tags: [events]
+      summary: Get upcoming events for a club
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Club events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventsListResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createClubEvent
+      tags: [events]
+      summary: Create an event for a club (leaders only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventBody"
+      responses:
+        "201":
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateEventResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /events/{id}:
+    delete:
+      operationId: deleteEvent
+      tags: [events]
+      summary: Delete an event (leaders only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /clubs/{id}/enroll:
+    post:
+      operationId: enrollInClub
+      tags: [enrollment]
+      summary: Enroll the current user in a club
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Enrolled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /clubs/{id}/unenroll:
+    post:
+      operationId: unenrollFromClub
+      tags: [enrollment]
+      summary: Unenroll the current user from a club
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Unenrolled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "403":
+          description: Leaders cannot unenroll
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /calendar/events:
+    get:
+      operationId: getCalendarEvents
+      tags: [calendar]
+      summary: Get all events for a month with enrollment status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: month
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Calendar events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEventsResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/google/login:
+    get:
+      operationId: googleLogin
+      tags: [auth]
+      summary: Redirect to Google OAuth
+      responses:
+        "302":
+          description: Redirect to Google
+
+  /auth/google/callback:
+    get:
+      operationId: googleCallback
+      tags: [auth]
+      summary: Handle Google OAuth callback
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: error
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: JWT token issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Domain not allowed or OAuth failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +514,467 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          type: string
+      required:
+        - success
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+      required:
+        - success
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+      required:
+        - success
+        - token
+        - user
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        full_name:
+          type: string
+        graduation_year:
+          type: integer
+          nullable: true
+      required:
+        - id
+        - email
+        - full_name
+
+    UserMeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          $ref: "#/components/schemas/UserProfile"
+      required:
+        - success
+        - user
+
+    UserSettings:
+      type: object
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+        notifications_email:
+          type: boolean
+        notifications_reminders:
+          type: boolean
+        notifications_new_clubs:
+          type: boolean
+        notifications_chat:
+          type: boolean
+        notifications_digest:
+          type: boolean
+        notifications_push_mobile:
+          type: boolean
+      required:
+        - full_name
+        - email
+        - notifications_email
+        - notifications_reminders
+        - notifications_new_clubs
+        - notifications_chat
+        - notifications_digest
+        - notifications_push_mobile
+
+    UserSettingsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        settings:
+          $ref: "#/components/schemas/UserSettings"
+      required:
+        - success
+        - settings
+
+    UpdateUserSettingsBody:
+      type: object
+      properties:
+        full_name:
+          type: string
+        notifications_email:
+          type: boolean
+        notifications_reminders:
+          type: boolean
+        notifications_new_clubs:
+          type: boolean
+        notifications_chat:
+          type: boolean
+        notifications_digest:
+          type: boolean
+        notifications_push_mobile:
+          type: boolean
+
+    ClubLeaderEntry:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        email:
+          type: string
+      required:
+        - name
+        - role
+        - email
+
+    ClubSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [Committee, Union, Club, Team, Other]
+        initial:
+          type: string
+        default_day:
+          type: string
+        default_location:
+          type: string
+        chat_link:
+          type: string
+        profile_photo:
+          type: string
+        is_enrolled:
+          type: boolean
+        is_leader:
+          type: boolean
+      required:
+        - id
+        - name
+        - description
+        - type
+        - initial
+        - default_day
+        - default_location
+        - chat_link
+        - profile_photo
+        - is_enrolled
+        - is_leader
+
+    ClubsListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        clubs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClubSummary"
+      required:
+        - success
+        - clubs
+
+    LeadingClub:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [Committee, Union, Club, Team, Other]
+        initial:
+          type: string
+        default_day:
+          type: string
+        default_location:
+          type: string
+        chat_link:
+          type: string
+        profile_photo:
+          type: string
+        user_role:
+          type: string
+        member_count:
+          type: integer
+        upcoming_events_count:
+          type: integer
+      required:
+        - id
+        - name
+        - description
+        - type
+        - initial
+        - default_day
+        - default_location
+        - chat_link
+        - profile_photo
+        - user_role
+        - member_count
+        - upcoming_events_count
+
+    LeadingClubsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        clubs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeadingClub"
+      required:
+        - success
+        - clubs
+
+    EventSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        event_date:
+          type: string
+        event_time:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - title
+        - event_date
+        - event_time
+        - location
+        - description
+
+    ClubDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [Committee, Union, Club, Team, Other]
+        initial:
+          type: string
+        default_day:
+          type: string
+        default_location:
+          type: string
+        chat_link:
+          type: string
+        profile_photo:
+          type: string
+        is_enrolled:
+          type: boolean
+        is_leader:
+          type: boolean
+        leaders:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClubLeaderEntry"
+        upcoming_events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventSummary"
+      required:
+        - id
+        - name
+        - description
+        - type
+        - initial
+        - default_day
+        - default_location
+        - chat_link
+        - profile_photo
+        - is_enrolled
+        - is_leader
+        - leaders
+        - upcoming_events
+
+    ClubDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        club:
+          $ref: "#/components/schemas/ClubDetail"
+      required:
+        - success
+        - club
+
+    CreateClubBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [Committee, Union, Club, Team, Other]
+        default_day:
+          type: string
+        default_location:
+          type: string
+        chat_link:
+          type: string
+        profile_photo:
+          type: string
+        leaders:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClubLeaderEntry"
+      required:
+        - name
+        - description
+        - type
+        - default_day
+        - default_location
+        - leaders
+
+    CreateClubResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        club_id:
+          type: integer
+      required:
+        - success
+        - club_id
+
+    EventsListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventSummary"
+      required:
+        - success
+        - events
+
+    CreateEventBody:
+      type: object
+      properties:
+        title:
+          type: string
+        event_date:
+          type: string
+        event_time:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+        - event_date
+        - event_time
+        - location
+
+    CreateEventResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        event_id:
+          type: integer
+      required:
+        - success
+        - event_id
+
+    EnrollResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        enrollment_id:
+          type: integer
+      required:
+        - success
+        - enrollment_id
+
+    CalendarEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        club_id:
+          type: integer
+        club_name:
+          type: string
+        title:
+          type: string
+        event_date:
+          type: string
+        event_time:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+        is_enrolled:
+          type: boolean
+      required:
+        - id
+        - club_id
+        - club_name
+        - title
+        - event_date
+        - event_time
+        - location
+        - description
+        - is_enrolled
+
+    CalendarEventsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/CalendarEvent"
+      required:
+        - success
+        - events

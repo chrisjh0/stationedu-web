@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings - ClubHub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Lexend:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#eeefff",
+                    "on-tertiary-container": "#edf0ff",
+                    "surface": "#f7f9fb",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "surface-tint": "#0053db",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#b4c5ff",
+                    "outline-variant": "#c3c6d7",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#001a42",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#d8e2ff",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-background": "#191c1e",
+                    "primary-container": "#2563eb",
+                    "secondary-fixed": "#dae2fd",
+                    "on-primary-fixed": "#00174b",
+                    "secondary-container": "#dae2fd",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "surface-dim": "#d8dadc",
+                    "inverse-on-surface": "#eff1f3",
+                    "secondary": "#565e74",
+                    "surface-bright": "#f7f9fb",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed-dim": "#adc6ff",
+                    "tertiary-container": "#0f69dc",
+                    "primary-fixed": "#dbe1ff",
+                    "outline": "#737686",
+                    "inverse-surface": "#2d3133",
+                    "on-tertiary": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "error-container": "#ffdad6",
+                    "primary": "#004ac6",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#0051b1",
+                    "on-secondary-fixed": "#131b2e",
+                    "surface-container-low": "#f2f4f6",
+                    "surface-container-highest": "#e0e3e5",
+                    "background": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#004395",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-surface-variant": "#434655",
+                    "surface-container": "#eceef0",
+                    "on-secondary-container": "#5c647a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "xl": "64px",
+                    "container-padding": "32px",
+                    "gutter": "24px",
+                    "sm": "12px",
+                    "lg": "40px",
+                    "base": "8px",
+                    "md": "24px"
+            },
+            "fontFamily": {
+                    "h2": [
+                            "Lexend"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "label-caps": [
+                            "Inter"
+                    ],
+                    "h1": [
+                            "Lexend"
+                    ],
+                    "button": [
+                            "Inter"
+                    ],
+                    "h3": [
+                            "Lexend"
+                    ]
+            },
+            "fontSize": {
+                    "h2": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "h1": [
+                            "40px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "button": [
+                            "15px",
+                            {
+                                    "lineHeight": "1",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "h3": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.3",
+                                    "fontWeight": "500"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-xl">
+<!-- TopAppBar -->
+<nav class="fixed top-gutter left-1/2 -translate-x-1/2 z-50 flex items-center bg-surface-container-lowest/70 backdrop-blur-[20px] rounded-full px-gutter py-sm shadow-[0px_10px_30px_rgba(15,23,42,0.08)] border border-surface-container-highest/50">
+<!-- Brand / Logo Area -->
+<div class="flex items-center gap-base mr-lg">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-h3 font-bold">
+                C
+            </div>
+<span class="font-h3 text-on-surface tracking-tight hidden md:block">ClubHub</span>
+</div>
+<!-- Navigation Links -->
+<div class="flex items-center gap-sm md:gap-md">
+<a class="flex items-center gap-base px-sm py-xs rounded-full text-secondary hover:bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+<span class="font-button hidden md:block">Calendar</span>
+</a>
+<a class="flex items-center gap-base px-sm py-xs rounded-full text-secondary hover:bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+<span class="font-button hidden md:block">Your Clubs</span>
+</a>
+<a class="flex items-center gap-base px-sm py-xs rounded-full text-secondary hover:bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">leaderboard</span>
+<span class="font-button hidden md:block">Leadership</span>
+</a>
+<a class="flex items-center gap-base px-sm py-xs rounded-full text-secondary hover:bg-surface-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">contact_page</span>
+<span class="font-button hidden md:block">Directory</span>
+</a>
+<!-- Active State: Settings -->
+<a class="flex items-center gap-base px-md py-sm rounded-full bg-primary/10 text-primary relative shadow-[0_0_15px_rgba(37,99,235,0.05)] transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px] shadow-[0_0_15px_rgba(37,99,235,0.1)]">settings</span>
+<span class="font-button font-bold">Settings</span>
+</a>
+</div>
+<!-- Right Actions (Profile/Notifications) -->
+<div class="flex items-center gap-sm ml-lg pl-md border-l border-surface-variant">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:bg-surface-variant/50 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden border-2 border-surface-container-lowest shadow-sm cursor-pointer">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a smiling student in a bright, modern campus setting. Soft, natural lighting with a minimalist educational aesthetic." src="https://lh3.googleusercontent.com/aida/ADBb0ugZBS_kT_qR5Cpg1d9a5U5dlGaNPqH7AbfnFrCBNsik6LfPZ18UwIVF6xP57TSug0b1V6XT8nY5rocxpxXEE92PM21OZ-SOteNGCrigGmM4eJR2nFiA7ZBEzCthRcmAsshyp2SYuTJUwAOGYA8wBm2Psn1MZb4gyqmcwL-dO954oe6S6csPChrBipeRidAfE67Yau9Km0SLiGFG1sQqPxR8r9EscqOOtKzV0hz0-KFEaxv0ilVlCejeTboy8ijClh_6qtXq9zfXxr4"/>
+</div>
+</div>
+</nav>
+<main class="max-w-4xl mx-auto px-6 pt-[140px] pb-xl">
+<!-- Header Section -->
+<div class="mb-lg pt-8">
+<h1 class="font-h1 text-h1 text-on-surface mb-xs">Settings</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage your account information and notification preferences.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Side Navigation Panel (Optional for settings, but good for robust layout) -->
+<div class="hidden md:block md:col-span-3">
+<nav class="sticky top-32 space-y-2">
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-primary-container text-on-primary-container shadow-[0px_4px_12px_rgba(37,99,235,0.1)]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-button text-button">Account</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-button text-button">Notifications</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-button text-button">Privacy</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">palette</span>
+<span class="font-button text-button">Appearance</span>
+</a>
+</nav>
+</div>
+<!-- Main Content Area -->
+<div class="md:col-span-9 space-y-lg">
+<!-- Account Information Card -->
+<section class="bg-surface-container-lowest rounded-xl p-md shadow-[0px_10px_30px_rgba(15,23,42,0.04)] relative overflow-hidden group">
+<!-- Subtle abstract background element -->
+<div class="absolute -right-20 -top-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500"></div>
+<h2 class="font-h3 text-h3 text-on-surface mb-6 flex items-center">
+<span class="material-symbols-outlined mr-2 text-primary">manage_accounts</span>
+                        Account Information
+                    </h2>
+<div class="space-y-6 relative z-10">
+<!-- Profile Image Section -->
+<div class="flex items-center space-x-6">
+<div class="w-24 h-24 rounded-full overflow-hidden border-4 border-surface-container shadow-sm flex-shrink-0">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A serene, minimalist digital portrait of a university student looking confident and approachable. The background is a soft, uncluttered professional blue gradient with ample negative space. Lighting is bright, high-key, and soft, enhancing the modern, glassmorphism UI aesthetic. The overall mood is optimistic and administrative-friendly." src="https://lh3.googleusercontent.com/aida/ADBb0ugZBS_kT_qR5Cpg1d9a5U5dlGaNPqH7AbfnFrCBNsik6LfPZ18UwIVF6xP57TSug0b1V6XT8nY5rocxpxXEE92PM21OZ-SOteNGCrigGmM4eJR2nFiA7ZBEzCthRcmAsshyp2SYuTJUwAOGYA8wBm2Psn1MZb4gyqmcwL-dO954oe6S6csPChrBipeRidAfE67Yau9Km0SLiGFG1sQqPxR8r9EscqOOtKzV0hz0-KFEaxv0ilVlCejeTboy8ijClh_6qtXq9zfXxr4"/>
+</div>
+<div>
+<button class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-button text-button transition-colors focus:ring-2 focus:ring-primary/20 outline-none">
+                                    Change Avatar
+                                </button>
+<p class="text-xs text-on-surface-variant mt-2 font-body-md">JPG, GIF or PNG. Max size of 800K</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Full Name Field -->
+<div class="space-y-2">
+<label class="block font-label-caps text-label-caps text-on-surface-variant" for="fullName">FULL NAME</label>
+<input class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 font-body-md text-on-surface focus:ring-2 focus:ring-primary shadow-inner transition-shadow outline-none" id="fullName" placeholder="Enter your full name" type="text" value="Alex Johnson"/>
+</div>
+<!-- Read-only Email Field -->
+<div class="space-y-2">
+<label class="block font-label-caps text-label-caps text-on-surface-variant" for="email">EMAIL ADDRESS</label>
+<div class="relative">
+<input class="w-full bg-surface-container border-none rounded-lg px-4 py-3 font-body-md text-on-surface-variant cursor-not-allowed opacity-70 outline-none" id="email" readonly="" type="email" value="alex.johnson@university.edu"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-50 text-sm">lock</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Contact IT support to change your primary email.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Notification Preferences Card -->
+<section class="bg-surface-container-lowest rounded-xl p-md shadow-[0px_10px_30px_rgba(15,23,42,0.04)]">
+<h2 class="font-h3 text-h3 text-on-surface mb-2 flex items-center">
+<span class="material-symbols-outlined mr-2 text-primary">notifications_active</span>
+                        Notification Preferences
+                    </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Choose what you want to be notified about and how we should reach you.</p>
+<div class="space-y-4">
+<!-- Toggle Item 1: Email Notifications -->
+<div class="flex items-center justify-between p-4 rounded-lg bg-surface-container-low/50 hover:bg-surface-container-low transition-colors">
+<div class="pr-4">
+<p class="font-button text-button text-on-surface">Email Notifications</p>
+<p class="font-body-md text-sm text-on-surface-variant">Receive daily summaries and critical updates via email.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle Item 2: Event Reminders -->
+<div class="flex items-center justify-between p-4 rounded-lg bg-surface-container-low/50 hover:bg-surface-container-low transition-colors">
+<div class="pr-4">
+<p class="font-button text-button text-on-surface">Event Reminders</p>
+<p class="font-body-md text-sm text-on-surface-variant">Get notified 24 hours before your club events begin.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle Item 3: New Clubs -->
+<div class="flex items-center justify-between p-4 rounded-lg bg-surface-container-low/50 hover:bg-surface-container-low transition-colors">
+<div class="pr-4">
+<p class="font-button text-button text-on-surface">New Club Alerts</p>
+<p class="font-body-md text-sm text-on-surface-variant">Hear about new organizations forming on campus.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle Item 4: Chat Messages -->
+<div class="flex items-center justify-between p-4 rounded-lg bg-surface-container-low/50 hover:bg-surface-container-low transition-colors">
+<div class="pr-4">
+<p class="font-button text-button text-on-surface">Direct Messages</p>
+<p class="font-body-md text-sm text-on-surface-variant">Receive instant notifications for new chat messages.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle Item 5: Weekly Digest -->
+<div class="flex items-center justify-between p-4 rounded-lg bg-surface-container-low/50 hover:bg-surface-container-low transition-colors">
+<div class="pr-4">
+<p class="font-button text-button text-on-surface">Weekly Digest</p>
+<p class="font-body-md text-sm text-on-surface-variant">A curated summary of the week's top club activities.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle Item 6: Mobile Push -->
+<div class="flex items-center justify-between p-4 rounded-lg bg-surface-container-low/50 hover:bg-surface-container-low transition-colors">
+<div class="pr-4">
+<p class="font-button text-button text-on-surface">Mobile Push</p>
+<p class="font-body-md text-sm text-on-surface-variant">Allow notifications sent directly to your mobile device.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Action Area -->
+<div class="flex justify-end pt-4 pb-12">
+<button class="bg-gradient-to-r from-primary to-surface-tint text-on-primary font-button text-button px-8 py-3 rounded-lg shadow-[0px_4px_14px_rgba(0,83,219,0.3)] hover:shadow-[0px_6px_20px_rgba(0,83,219,0.4)] transition-all duration-300 transform hover:-translate-y-0.5">
+                        Save Changes
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="flex flex-col md:flex-row justify-between items-center py-10 px-8 w-full max-w-7xl mx-auto border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flat no shadows mt-12">
+<div class="text-lg font-bold text-slate-900 dark:text-white mb-4 md:mb-0">
+            ClubHub
+        </div>
+<nav class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-lexend text-xs mb-4 md:mb-0">
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-4 transition-all duration-300" href="#">Support</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-4 transition-all duration-300" href="#">Privacy Policy</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-4 transition-all duration-300" href="#">Terms of Service</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 underline underline-offset-4 transition-all duration-300" href="#">Help Center</a>
+</nav>
+<div class="font-lexend text-xs text-slate-400 dark:text-slate-500">
+            © 2024 ClubHub Management. All rights reserved.
+        </div>
+</footer>
+</body></html>

@@ -1,0 +1,47 @@
+I have attached my full PRD (ClubHub_PRD_Final.md) and a design folder containing HTML prototypes and screenshots for every screen (calendarcode.html, calendarscreen.png, directorycode.html, directoryscreen.png, leadershipcode.html, leadershipscreen.png, settingscode.html, settingscreen.png, yourclubcode.html, yourclubscreen.png) and a DESIGN_NOTES.md file. Read all of them completely before writing any code. The HTML files are the reference implementation for each screen — match them pixel-closely when building the React components.
+Design system to extract and apply globally from the design files:
+
+Fonts: Lexend (headings/display) + Inter (body, labels, inputs) via Google Fonts
+Colors: Primary #004AC6, primary container #2563EB, surface #F7F9FB, on-surface #191C1E, on-surface-variant #434655, error #BA1A1A, outline #737686, outline-variant #C3C6D7 — define all as Tailwind custom tokens
+Nav bar: Floating pill-shaped top bar, white background, subtle shadow, ClubHub logo on left, nav links in center, bell + avatar on right. Active nav item has a filled blue pill background. No sidebar — this is a top-nav layout.
+Surfaces: No borders on cards — use soft shadows only (0px 10px 30px rgba(15,23,42,0.04)). Background is #F7F9FB. Cards are white with border-radius: 24px.
+Buttons: Primary = Electric Blue gradient with white text and soft colored shadow. Ghost = no background, blue text, subtle blue hover.
+Inputs: Soft slate background, border-radius: 16px, blue glow on focus (no thick border).
+Badges/chips: Pill-shaped, low-opacity color fill with full-opacity text.
+Footer: Simple, light gray text with Support / Privacy Policy / Terms of Service / Help Center links centered, copyright right-aligned.
+
+Build the following all at once:
+1. Monorepo structure (PRD Section 0.6):
+
+Root package.json with npm workspaces
+packages/shared, packages/backend, packages/web, packages/mobile (mobile: scaffold only)
+.env.example with all variables from PRD Section 2
+.prettierrc and .eslintrc per PRD Section 12.1
+
+2. Shared types (PRD Sections 5 + 7 + 8):
+
+In packages/shared/src/index.ts: User, Club, ClubLeader, Event, Enrollment, ClubType enum, DayOfWeek, all API response shapes, notification preference types
+
+3. Database schema (PRD Section 7):
+
+Full Prisma schema at packages/backend/prisma/schema.prisma with all models, relations, and constraints
+Run npx prisma migrate dev --name init
+
+4. Auth (PRD Section 4):
+
+Google OAuth 2.0 via passport-google-oauth20
+JWT via jsonwebtoken, 7-day expiry
+ALLOWED_EMAIL_DOMAIN check with exact error messages from PRD Section 4
+requireAuth middleware returning 401 on failure
+Routes: GET /auth/google, GET /auth/google/callback, POST /auth/logout
+Web frontend: store JWT in localStorage as clubhub_token, attach as Authorization: Bearer <token> via shared apiClient.ts
+Login page: centered card on #F7F9FB background, ClubHub logo, "Sign in with Google" primary button, all error states from PRD Section 4
+
+5. Tailwind config:
+
+All color tokens from the design notes above
+fontFamily: { lexend: ['Lexend'], inter: ['Inter'] }
+Custom borderRadius tokens: sm 0.25rem, md 0.75rem, lg 1rem, xl 1.5rem, full 9999px
+tsconfig.json strict mode in all packages
+
+Show me the full directory tree when done.
