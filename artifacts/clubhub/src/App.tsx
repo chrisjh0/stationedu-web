@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/AuthContext";
 import { AuthGuard } from "@/components/AuthGuard";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import Login from "@/pages/login";
 import CalendarPage from "@/pages/calendar";
@@ -21,8 +22,10 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   return (
     <AuthGuard>
       <NavBar />
-      <main className="pt-28 pb-10 min-h-[calc(100vh-200px)]">
-        <Component />
+      <main className="pt-28 pb-10 min-h-[calc(100vh-200px)] animate-in fade-in duration-150">
+        <ErrorBoundary>
+          <Component />
+        </ErrorBoundary>
       </main>
       <Footer />
     </AuthGuard>

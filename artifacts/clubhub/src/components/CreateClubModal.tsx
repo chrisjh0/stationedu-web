@@ -11,7 +11,14 @@ import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
 import { PhotoUpload } from "./PhotoUpload";
 
-export function CreateClubModal({ onClose }: { onClose: () => void }) {
+const DESCRIPTION_MAX = 500;
+
+interface CreateClubModalProps {
+  onClose: () => void;
+  onCreated?: (clubId: number) => void;
+}
+
+export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
   const { user } = useAuth();
   const createMutation = useCreateClub();
   const queryClient = useQueryClient();
@@ -23,7 +30,7 @@ export function CreateClubModal({ onClose }: { onClose: () => void }) {
   const [location, setLocation] = useState("");
   const [chatLink, setChatLink] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  
+
   const [leaders, setLeaders] = useState([{ name: user?.full_name || "", role: "President", email: user?.email || "" }]);
 
   const handleSubmit = () => {
@@ -44,11 +51,15 @@ export function CreateClubModal({ onClose }: { onClose: () => void }) {
         leaders: leaders.filter(l => l.name && l.role && l.email)
       }
     }, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         toast.success("Club created successfully!");
         queryClient.invalidateQueries({ queryKey: getGetLeadingClubsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
-        onClose();
+        if (onCreated && data.club_id) {
+          onCreated(data.club_id);
+        } else {
+          onClose();
+        }
       },
       onError: (err) => {
         toast.error(err.message || "Failed to create club");
@@ -87,8 +98,19 @@ export function CreateClubModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-secondary">Description *</label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="What is this club about?" className="rounded-xl bg-surface resize-none" />
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-secondary">Description *</label>
+              <span className={`text-xs font-medium ${description.length > DESCRIPTION_MAX ? "text-error" : "text-secondary"}`}>
+                {description.length}/{DESCRIPTION_MAX}
+              </span>
+            </div>
+            <Textarea
+              value={description}
+              onChange={e => setDescription(e.target.value.slice(0, DESCRIPTION_MAX))}
+              rows={3}
+              placeholder="What is this club about?"
+              className="rounded-xl bg-surface resize-none"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,16 +145,16 @@ export function CreateClubModal({ onClose }: { onClose: () => void }) {
           <div className="pt-4 border-t border-outline-variant/20">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-semibold text-on-surface">Leaders</h4>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setLeaders([...leaders, { name: "", role: "", email: "" }])}
                 className="rounded-full text-xs h-8"
               >
                 <span className="material-symbols-outlined text-[16px] mr-1">add</span> Add Leader
               </Button>
             </div>
-            
+
             <div className="space-y-3">
               {leaders.map((leader, i) => (
                 <div key={i} className="flex gap-2 items-start bg-surface p-3 rounded-xl border border-outline-variant/30">
@@ -148,9 +170,15 @@ export function CreateClubModal({ onClose }: { onClose: () => void }) {
                     }} placeholder="Email" type="email" className="h-9 text-sm" />
                   </div>
                   {i > 0 && (
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-error hover:bg-error/10 hover:text-error" onClick={() => {
-                      const newL = [...leaders]; newL.splice(i, 1); setLeaders(newL);
-                    }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove leader"
+                      className="h-9 w-9 text-error hover:bg-error/10 hover:text-error"
+                      onClick={() => {
+                        const newL = [...leaders]; newL.splice(i, 1); setLeaders(newL);
+                      }}
+                    >
                       <span className="material-symbols-outlined text-[18px]">close</span>
                     </Button>
                   )}

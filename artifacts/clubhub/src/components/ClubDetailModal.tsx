@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useGetClub, useEnrollInClub, useUnenrollFromClub, getGetClubQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -20,35 +21,37 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
   const enrollMutation = useEnrollInClub();
   const unenrollMutation = useUnenrollFromClub();
   const queryClient = useQueryClient();
+  const [confirmUnenroll, setConfirmUnenroll] = useState(false);
 
   const club = data?.success ? data.club : null;
 
-  const handleEnrollToggle = () => {
+  const handleEnroll = () => {
     if (!club) return;
-    
-    if (club.is_enrolled) {
-      unenrollMutation.mutate({ id: club.id }, {
-        onSuccess: () => {
-          toast.success("Unenrolled successfully");
-          queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
-          queryClient.invalidateQueries({ queryKey: getGetClubQueryKey(club.id) });
-          onEnrollmentChange?.(club.id, false);
-        },
-        onError: (err) => toast.error(err.message || "Failed to unenroll")
-      });
-    } else {
-      enrollMutation.mutate({ id: club.id }, {
-        onSuccess: () => {
-          toast.success("Enrolled successfully");
-          queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
-          queryClient.invalidateQueries({ queryKey: getGetClubQueryKey(club.id) });
-          onEnrollmentChange?.(club.id, true);
-        },
-        onError: (err) => toast.error(err.message || "Failed to enroll")
-      });
-    }
+    enrollMutation.mutate({ id: club.id }, {
+      onSuccess: () => {
+        toast.success("Enrolled successfully");
+        queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetClubQueryKey(club.id) });
+        onEnrollmentChange?.(club.id, true);
+      },
+      onError: (err) => toast.error(err.message || "Failed to enroll")
+    });
+  };
+
+  const handleUnenroll = () => {
+    if (!club) return;
+    unenrollMutation.mutate({ id: club.id }, {
+      onSuccess: () => {
+        toast.success("Unenrolled successfully");
+        setConfirmUnenroll(false);
+        queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetClubQueryKey(club.id) });
+        onEnrollmentChange?.(club.id, false);
+      },
+      onError: (err) => { toast.error(err.message || "Failed to unenroll"); setConfirmUnenroll(false); }
+    });
   };
 
   return (
@@ -110,7 +113,7 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
                     <p className="text-sm text-secondary italic">No leaders listed</p>
                   )}
                 </div>
-                
+
                 <div>
                   <h4 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Upcoming Events</h4>
                   {club.upcoming_events && club.upcoming_events.length > 0 ? (
@@ -130,7 +133,7 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
                   )}
                 </div>
               </div>
-              
+
               {club.chat_link && club.is_enrolled && (
                 <div className="mt-8 pt-6 border-t border-outline-variant/20">
                   <a href={club.chat_link} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-[#E3F2FD] text-[#0369A1] rounded-xl font-medium hover:bg-[#BAE6FD] transition-colors">
@@ -147,18 +150,43 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
                   You lead this club
                 </Button>
               ) : club.is_enrolled ? (
-                <Button 
-                  variant="outline"
-                  className="w-full h-12 rounded-xl text-error border-error/30 hover:bg-error/5 hover:text-error font-semibold"
-                  onClick={handleEnrollToggle}
-                  disabled={unenrollMutation.isPending}
-                >
-                  {unenrollMutation.isPending ? "Unenrolling..." : "Unenroll"}
-                </Button>
+                confirmUnenroll ? (
+                  <div className="flex flex-col gap-3">
+                    <p className="text-sm text-center text-on-surface font-medium">
+                      Are you sure? You will lose your spot.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-10 rounded-xl border-outline-variant/40"
+                        onClick={() => setConfirmUnenroll(false)}
+                        disabled={unenrollMutation.isPending}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1 h-10 rounded-xl"
+                        onClick={handleUnenroll}
+                        disabled={unenrollMutation.isPending}
+                      >
+                        {unenrollMutation.isPending ? "Unenrolling..." : "Confirm Unenroll"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 rounded-xl text-error border-error/30 hover:bg-error/5 hover:text-error font-semibold"
+                    onClick={() => setConfirmUnenroll(true)}
+                  >
+                    Unenroll
+                  </Button>
+                )
               ) : (
-                <Button 
+                <Button
                   className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white font-semibold shadow-md shadow-primary/20 hover:opacity-90"
-                  onClick={handleEnrollToggle}
+                  onClick={handleEnroll}
                   disabled={enrollMutation.isPending}
                 >
                   {enrollMutation.isPending ? "Enrolling..." : "Join Club"}

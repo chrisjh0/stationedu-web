@@ -3,6 +3,9 @@ import { useLocation } from "wouter";
 import { useAuth } from "../components/AuthContext";
 import { Button } from "../components/ui/button";
 
+const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || "support@school.edu";
+const APP_NAME = import.meta.env.VITE_APP_NAME || "ClubHub";
+
 const ERROR_MESSAGES: Record<string, string> = {
   domain: "Your email domain is not allowed. Please use your school email address.",
   oauth_not_configured: "Google sign-in is not configured. Contact your administrator.",
@@ -37,7 +40,7 @@ export default function Login() {
           C
         </div>
 
-        <h1 className="text-3xl font-bold font-lexend text-center text-on-surface mb-2">ClubHub</h1>
+        <h1 className="text-3xl font-bold font-lexend text-center text-on-surface mb-2">{APP_NAME}</h1>
         <p className="text-secondary text-center mb-8">Welcome to your campus hub.</p>
 
         {errorMessage && (
@@ -57,7 +60,7 @@ export default function Login() {
 
         <p className="mt-10 text-xs text-secondary/70 text-center">
           Having trouble signing in? <br />
-          Contact <a href="mailto:support@school.edu" className="text-primary hover:underline">support@school.edu</a>
+          Contact <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">{SUPPORT_EMAIL}</a>
         </p>
       </div>
     </div>

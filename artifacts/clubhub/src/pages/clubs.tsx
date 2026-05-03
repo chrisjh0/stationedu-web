@@ -64,7 +64,7 @@ export default function ClubsPage() {
                 </span>
               )}
               {club.is_leader && (
-                <span className="absolute top-3 right-3 bg-amber-400 text-white text-[11px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5 shadow-sm">
+                <span className="absolute top-3 right-3 bg-primary text-white text-[11px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5 shadow-sm">
                   <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                   Lead
                 </span>

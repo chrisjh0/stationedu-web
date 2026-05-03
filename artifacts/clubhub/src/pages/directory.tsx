@@ -34,11 +34,19 @@ const CATEGORY_FILTERS = ["All", "Club", "Committee", "Team", "Union", "Other"];
 
 async function fetchClubsPage(offset: number): Promise<{ clubs: ClubItem[]; hasMore: boolean }> {
   const token = localStorage.getItem("clubhub_token");
-  const res = await fetch(`/api/clubs?limit=${PAGE_SIZE}&offset=${offset}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!res.ok) throw new Error("Failed to fetch clubs");
-  const data = await res.json();
+  let res: Response;
+  try {
+    res = await fetch(`/api/clubs?limit=${PAGE_SIZE}&offset=${offset}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  } catch {
+    throw new Error("Network error — please check your connection and try again.");
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error || `Failed to load clubs (${res.status} ${res.statusText})`);
+  }
+  const data = await res.json() as { clubs?: ClubItem[]; hasMore?: boolean };
   return { clubs: data.clubs ?? [], hasMore: data.hasMore ?? false };
 }
 
@@ -57,14 +65,16 @@ export default function DirectoryPage() {
       const { clubs, hasMore: more } = await fetchClubsPage(0);
       setAllClubs(clubs);
       setHasMore(more);
-    } catch {
-      toast.error("Failed to load clubs");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load clubs";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadFirstPage();
   }, [loadFirstPage]);
 
@@ -74,8 +84,9 @@ export default function DirectoryPage() {
       const { clubs, hasMore: more } = await fetchClubsPage(allClubs.length);
       setAllClubs(prev => [...prev, ...clubs]);
       setHasMore(more);
-    } catch {
-      toast.error("Failed to load more clubs");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load more clubs";
+      toast.error(message);
     } finally {
       setIsLoadingMore(false);
     }
@@ -104,13 +115,15 @@ export default function DirectoryPage() {
             placeholder="Search clubs by name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            aria-label="Search clubs"
           />
         </div>
-        <div className="flex flex-wrap gap-2 flex-shrink-0">
+        <div className="flex flex-wrap gap-2 flex-shrink-0" role="group" aria-label="Filter by category">
           {CATEGORY_FILTERS.map(cat => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
+              aria-pressed={categoryFilter === cat}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${categoryFilter === cat ? "bg-primary text-white" : "bg-surface-container text-secondary hover:bg-surface-container-high"}`}
             >
               {cat === "All" ? "All Categories" : cat}
@@ -183,6 +196,7 @@ export default function DirectoryPage() {
                   <button
                     className="text-primary text-sm font-medium flex items-center gap-0.5 hover:gap-1.5 transition-all"
                     onClick={e => { e.stopPropagation(); setSelectedClubId(club.id); }}
+                    aria-label={`View details for ${club.name}`}
                   >
                     View Details
                     <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -221,8 +235,8 @@ export default function DirectoryPage() {
         <ClubDetailModal
           clubId={selectedClubId}
           onClose={() => setSelectedClubId(null)}
-          onEnrollmentChange={(clubId, enrolled) => {
-            setAllClubs(prev => prev.map(c => c.id === clubId ? { ...c, is_enrolled: enrolled } : c));
+          onEnrollmentChange={(id, enrolled) => {
+            setAllClubs(prev => prev.map(c => c.id === id ? { ...c, is_enrolled: enrolled } : c));
           }}
         />
       )}

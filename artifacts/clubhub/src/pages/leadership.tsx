@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useGetLeadingClubs, useDeleteClub } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { getClubColor } from "@/lib/color-utils";
@@ -22,7 +22,12 @@ export default function LeadershipPage() {
   const [manageEventsClubId, setManageEventsClubId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
-  const clubs = data?.success ? data.clubs : [];
+  const clubs = useMemo(() => (data?.success ? data.clubs : []), [data]);
+
+  const deleteTargetClub = useMemo(
+    () => clubs.find(c => c.id === deleteConfirmId) ?? null,
+    [clubs, deleteConfirmId]
+  );
 
   const handleDelete = () => {
     if (!deleteConfirmId) return;
@@ -47,7 +52,7 @@ export default function LeadershipPage() {
           <h1 className="text-3xl font-bold font-lexend text-on-surface">Leadership Hub</h1>
           <p className="text-secondary mt-1">Manage your clubs and events</p>
         </div>
-        <Button 
+        <Button
           className="bg-gradient-to-r from-primary to-primary-container text-white rounded-full px-6 py-6 shadow-lg shadow-primary/20 hover:opacity-90"
           onClick={() => setIsCreateModalOpen(true)}
         >
@@ -79,14 +84,14 @@ export default function LeadershipPage() {
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-6 animate-pulse">
-          {[1,2].map(i => <div key={i} className="h-48 bg-gray-200 rounded-3xl"></div>)}
+          {[1, 2].map(i => <div key={i} className="h-48 bg-gray-200 rounded-3xl"></div>)}
         </div>
       ) : clubs.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-3xl shadow-sm border border-dashed border-outline-variant/30">
           <span className="material-symbols-outlined text-5xl text-secondary opacity-40 mb-4">group_off</span>
           <h3 className="text-xl font-semibold mb-2">You aren't a leader of any clubs yet</h3>
           <p className="text-secondary mb-6">Start a new community by creating a club.</p>
-          <Button 
+          <Button
             className="bg-primary text-white rounded-full px-6"
             onClick={() => setIsCreateModalOpen(true)}
           >
@@ -97,7 +102,7 @@ export default function LeadershipPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {clubs.map(club => (
             <div key={club.id} className="bg-white rounded-3xl shadow-sm border border-outline-variant/20 overflow-hidden flex flex-col">
-              <div 
+              <div
                 className="p-6 cursor-pointer hover:bg-[#F9FAFB] transition-colors flex-grow"
                 onClick={() => setSelectedClubId(club.id)}
               >
@@ -119,7 +124,7 @@ export default function LeadershipPage() {
                     <p className="text-secondary text-sm mt-1 line-clamp-2">{club.description}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-6 mt-6 pt-6 border-t border-outline-variant/20">
                   <div className="flex flex-col">
                     <span className="text-xs text-secondary font-medium uppercase tracking-wider">Members</span>
@@ -131,27 +136,28 @@ export default function LeadershipPage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-[#F7F9FB] p-4 flex gap-2 justify-end border-t border-outline-variant/20">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="bg-white hover:bg-surface-container rounded-xl text-secondary"
                   onClick={() => setEditClubId(club.id)}
                 >
                   <span className="material-symbols-outlined text-[18px] mr-2">edit</span>
                   Edit Details
                 </Button>
-                <Button 
+                <Button
                   className="bg-primary hover:bg-primary-container text-white rounded-xl shadow-sm"
                   onClick={() => setManageEventsClubId(club.id)}
                 >
                   <span className="material-symbols-outlined text-[18px] mr-2">event</span>
                   Schedule Event
                 </Button>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="text-error hover:bg-error/10 hover:text-error rounded-xl w-10 p-0"
                   onClick={() => setDeleteConfirmId(club.id)}
+                  aria-label={`Delete ${club.name}`}
                 >
                   <span className="material-symbols-outlined text-[20px]">delete</span>
                 </Button>
@@ -162,14 +168,20 @@ export default function LeadershipPage() {
       )}
 
       {selectedClubId && (
-        <ClubDetailModal 
-          clubId={selectedClubId} 
-          onClose={() => setSelectedClubId(null)} 
+        <ClubDetailModal
+          clubId={selectedClubId}
+          onClose={() => setSelectedClubId(null)}
         />
       )}
 
       {isCreateModalOpen && (
-        <CreateClubModal onClose={() => setIsCreateModalOpen(false)} />
+        <CreateClubModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreated={(clubId) => {
+            setIsCreateModalOpen(false);
+            setManageEventsClubId(clubId);
+          }}
+        />
       )}
 
       {editClubId && (
@@ -185,7 +197,9 @@ export default function LeadershipPage() {
           <DialogHeader>
             <DialogTitle>Delete Club</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this club? This action cannot be undone. All members will be unenrolled and all events will be deleted.
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-on-surface">{deleteTargetClub?.name ?? "this club"}</span>?
+              {" "}This cannot be undone. All members will be unenrolled and all events will be deleted.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4 gap-2 sm:gap-0">

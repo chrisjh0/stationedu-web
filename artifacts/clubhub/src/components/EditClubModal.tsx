@@ -9,6 +9,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PhotoUpload } from "./PhotoUpload";
 
+const DESCRIPTION_MAX = 500;
+
 interface Club {
   id: number;
   name: string;
@@ -26,7 +28,6 @@ interface EditClubModalProps {
   onClose: () => void;
 }
 
-// Outer shell: waits for data, then hands it to the form as stable initial props.
 export function EditClubModal({ clubId, onClose }: EditClubModalProps) {
   const { data } = useGetClub(clubId);
   const club = data?.success ? data.club as unknown as Club : null;
@@ -37,8 +38,6 @@ export function EditClubModal({ clubId, onClose }: EditClubModalProps) {
         {!club ? (
           <div className="flex items-center justify-center h-48 text-secondary">Loading...</div>
         ) : (
-          // key={club.id} forces React to mount a fresh EditClubForm whenever the
-          // club changes, so useState initializers always run with the correct data.
           <EditClubForm key={club.id} club={club} onClose={onClose} />
         )}
       </DialogContent>
@@ -46,7 +45,6 @@ export function EditClubModal({ clubId, onClose }: EditClubModalProps) {
   );
 }
 
-// Inner form: initialized from props — no useEffect data-sync needed.
 function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
   const updateMutation = useUpdateClub();
   const queryClient = useQueryClient();
@@ -122,8 +120,18 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-secondary">Description *</label>
-          <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="rounded-xl bg-surface resize-none" />
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-secondary">Description *</label>
+            <span className={`text-xs font-medium ${description.length > DESCRIPTION_MAX ? "text-error" : "text-secondary"}`}>
+              {description.length}/{DESCRIPTION_MAX}
+            </span>
+          </div>
+          <Textarea
+            value={description}
+            onChange={e => setDescription(e.target.value.slice(0, DESCRIPTION_MAX))}
+            rows={3}
+            className="rounded-xl bg-surface resize-none"
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -183,9 +191,15 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
                   }} placeholder="Email" type="email" className="h-9 text-sm" />
                 </div>
                 {i > 0 && (
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-error hover:bg-error/10 hover:text-error" onClick={() => {
-                    const newL = [...leaders]; newL.splice(i, 1); setLeaders(newL);
-                  }}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Remove leader"
+                    className="h-9 w-9 text-error hover:bg-error/10 hover:text-error"
+                    onClick={() => {
+                      const newL = [...leaders]; newL.splice(i, 1); setLeaders(newL);
+                    }}
+                  >
                     <span className="material-symbols-outlined text-[18px]">close</span>
                   </Button>
                 )}

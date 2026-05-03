@@ -1,0 +1,47 @@
+This is a final comprehensive polish and hardening pass. Read the entire codebase carefully before making any changes. Complete everything below in a single pass and do not stop until every section is done.
+PART 1 - VISUAL POLISH (match design screenshots exactly)
+
+Audit every page (Calendar, Directory, Your Clubs, Leadership Hub, Settings) against the original design screenshots. Find any remaining spacing, color, font, or layout mismatches and fix them. Specifically check: all h1 and h2 headings use font-lexend, all cards use rounded-3xl with no visible borders and only soft shadows, all primary buttons use the blue gradient (from-primary to-primary-container) with a soft shadow-primary/20, all input fields use a soft slate background with blue glow on focus and no thick border ring, and all badge/chip elements are pill-shaped with low-opacity fill.
+The Calendar monthly view grid needs a full visual polish pass: today's date should have a filled blue circle, days with enrolled events show a red dot below the number, days with available events show a green dot, and days outside the current month should be visibly dimmed (opacity-40). Clicking any day in the monthly view switches to daily view for that day.
+The Your Clubs page "Lead" star badge should use the primary blue color (bg-primary text-white) not amber, to match the design language consistently.
+Add smooth page transition animations: when navigating between pages, apply a subtle fade-in (opacity 0 to 1, duration 150ms) so the app feels polished rather than jarring.
+
+PART 2 - UX IMPROVEMENTS
+
+The ClubDetailModal currently has no unenroll confirmation. Add a confirmation step: when a user clicks Unenroll, show a small inline confirmation ("Are you sure? You will lose your spot.") with Confirm and Cancel buttons before actually calling the unenroll API.
+The Leadership Hub "Delete Club" confirmation dialog already exists but does not show the club name in the message. Update it to say "Are you sure you want to delete [Club Name]? This cannot be undone." so the user knows exactly which club they are deleting.
+Add an empty state to the Calendar daily view that is more helpful than just "No events on this day." — include a "Browse the Directory to find clubs meeting today" link that navigates to /directory.
+Add a character counter to all textarea fields in CreateClubModal and EditClubModal (description field) showing remaining characters out of the maximum allowed, updating live as the user types.
+When a user successfully creates a new club in CreateClubModal, automatically navigate them to the Leadership Hub page and open the ManageEventsModal for the newly created club, so they are immediately prompted to schedule their first event.
+
+PART 3 - PERFORMANCE AND CODE QUALITY
+
+Audit all pages for unnecessary re-renders. Wrap expensive computed values in useMemo and stable callbacks in useCallback wherever they are missing. Specifically check directory.tsx filteredClubs computation, calendar.tsx week day and event filtering, and clubs.tsx enrolled clubs filter.
+Add error boundaries to every page so that if one page crashes it does not take down the entire app. Create a reusable ErrorBoundary component that shows a friendly "Something went wrong" message with a Reload button.
+Add a global loading state to the AuthContext so that while the JWT is being validated on app start, the app shows a centered ClubHub logo spinner instead of flashing the login page briefly before redirecting authenticated users.
+Ensure all fetch calls in the codebase that are NOT using the generated API client (for example the raw fetch in directory.tsx fetchClubsPage) include proper error handling with specific error messages, not just generic "Failed to fetch" toasts.
+Run ESLint across both packages and fix every warning and error. Run tsc --noEmit in both packages and confirm zero errors remain.
+
+PART 4 - ACCESSIBILITY
+
+Every interactive element (buttons, links, modal close buttons, filter chips, nav items) must have either an aria-label or visible text. Audit the entire app and add missing aria-labels, especially on icon-only buttons like the hamburger menu, close buttons, delete buttons, and the bell icon.
+All modals must trap focus when open (tab key cycles only through elements inside the modal) and restore focus to the triggering element when closed. Verify ClubDetailModal, CreateClubModal, EditClubModal, and ManageEventsModal all behave correctly.
+Add keyboard navigation support to the week strip on the Calendar page: left and right arrow keys should move the selected day, and pressing Enter on a day should select it.
+
+PART 5 - PREPARING FOR CURSOR AND CLAUDE CODE
+
+Create a HANDOFF.md file at the root of the project with the following sections: Project Structure (explaining every folder and what it contains), Environment Variables (listing every required env var with a description and example value), Running Locally (step by step commands to get the project running from scratch), Known Issues (any bugs or limitations you are aware of), and Next Features (the mobile app, Vercel deployment, Playwright E2E tests, Google OAuth credentials setup, and admin dashboard from PRD Section 15).
+Add a .github/workflows/ci.yml GitHub Actions workflow that runs on every push to main: install dependencies, run tsc --noEmit on both packages, run ESLint on both packages, and run the full backend test suite. This should be ready to activate the moment the repo is pushed to GitHub.
+Audit the entire codebase for any hardcoded strings that should be environment variables: school name, app name, support email, allowed email domain. Replace every hardcoded instance with the correct environment variable reference (APP_NAME, SCHOOL_NAME, SUPPORT_EMAIL, ALLOWED_EMAIL_DOMAIN) so the app is fully white-label ready as described in PRD Section 2.
+Add a robots.txt and a basic meta description tag to index.html with the app name and school name pulled from environment variables.
+Do a final security audit: confirm all API routes except /api/auth/* require the JWT via requireAuth middleware, confirm no sensitive values (secrets, private keys, tokens) appear anywhere in the frontend source code or are logged by the backend logger, and confirm the ALLOWED_EMAIL_DOMAIN check cannot be bypassed by a malformed email string.
+
+When completely finished, give me a structured report with exactly these sections:
+
+COMPLETED - Every fix from Parts 1-5 that is fully done and working
+PARTIALLY DONE - Anything started but not fully finished, with exact explanation of what is missing and why
+STILL BROKEN - Any bugs or issues that still exist after your changes
+TYPESCRIPT ERRORS - Full output of tsc --noEmit from both packages
+ESLINT OUTPUT - Full output of ESLint from both packages
+TEST RESULTS - Full output of the backend test suite
+NEXT TASKS - The most impactful remaining improvements written as prompts I can paste directly into Cursor or Claude Code when I move there

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useGetCalendarEvents, getGetCalendarEventsQueryKey } from "@workspace/api-client-react";
 import { ClubDetailModal } from "@/components/ClubDetailModal";
+import { Link } from "wouter";
 import {
   format, addDays, startOfWeek, isSameDay,
   startOfMonth, endOfMonth, eachDayOfInterval,
@@ -48,6 +49,12 @@ export default function CalendarPage() {
 
   const today = new Date();
 
+  const handleWeekKeyDown = useCallback((e: React.KeyboardEvent, day: Date) => {
+    if (e.key === "ArrowLeft") { e.preventDefault(); setSelectedDate(prev => addDays(prev, -1)); }
+    if (e.key === "ArrowRight") { e.preventDefault(); setSelectedDate(prev => addDays(prev, 1)); }
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedDate(day); }
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto px-6">
       <div className="flex items-start justify-between mb-8 gap-4">
@@ -81,11 +88,12 @@ export default function CalendarPage() {
             <button
               className="w-8 h-8 flex items-center justify-center text-secondary hover:bg-surface-container rounded-full transition-colors"
               onClick={() => setSelectedDate(addDays(selectedDate, -7))}
+              aria-label="Previous week"
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
 
-            <div className="flex gap-1 sm:gap-2 md:gap-4">
+            <div className="flex gap-1 sm:gap-2 md:gap-4" role="group" aria-label="Week days">
               {weekDays.map(day => {
                 const isSelected = isSameDay(day, selectedDate);
                 const dayStr = format(day, "yyyy-MM-dd");
@@ -96,8 +104,13 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`flex flex-col items-center cursor-pointer p-2 rounded-2xl w-11 transition-colors ${isSelected ? "bg-primary text-white" : isToday ? "ring-1 ring-primary hover:bg-surface-container" : "hover:bg-surface-container"}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${format(day, "EEEE, MMMM d")}${isSelected ? ", selected" : ""}${isToday ? ", today" : ""}`}
+                    aria-pressed={isSelected}
+                    className={`flex flex-col items-center cursor-pointer p-2 rounded-2xl w-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isSelected ? "bg-primary text-white" : isToday ? "ring-1 ring-primary hover:bg-surface-container" : "hover:bg-surface-container"}`}
                     onClick={() => setSelectedDate(day)}
+                    onKeyDown={e => handleWeekKeyDown(e, day)}
                   >
                     <span className={`text-xs font-medium mb-1 ${isSelected ? "text-white/80" : "text-secondary"}`}>
                       {format(day, "EEE").charAt(0)}
@@ -115,6 +128,7 @@ export default function CalendarPage() {
             <button
               className="w-8 h-8 flex items-center justify-center text-secondary hover:bg-surface-container rounded-full transition-colors"
               onClick={() => setSelectedDate(addDays(selectedDate, 7))}
+              aria-label="Next week"
             >
               <span className="material-symbols-outlined">chevron_right</span>
             </button>
@@ -149,7 +163,15 @@ export default function CalendarPage() {
           ) : filteredEvents.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
               <span className="material-symbols-outlined text-4xl text-secondary opacity-40 mb-2 block">event_busy</span>
-              <p className="text-secondary font-medium">No events on this day.</p>
+              <p className="text-on-surface font-medium mb-1">No events on this day.</p>
+              <p className="text-secondary text-sm mb-4">Looking for something to do?</p>
+              <Link
+                href="/directory"
+                className="inline-flex items-center gap-1.5 text-primary text-sm font-medium hover:underline"
+              >
+                <span className="material-symbols-outlined text-[16px]">explore</span>
+                Browse the Directory to find clubs meeting today
+              </Link>
             </div>
           ) : (
             <div className="space-y-4">
@@ -216,6 +238,7 @@ export default function CalendarPage() {
             <button
               className="w-8 h-8 flex items-center justify-center text-secondary hover:bg-surface-container rounded-full transition-colors"
               onClick={() => setSelectedDate(addMonths(selectedDate, -1))}
+              aria-label="Previous month"
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
@@ -223,6 +246,7 @@ export default function CalendarPage() {
             <button
               className="w-8 h-8 flex items-center justify-center text-secondary hover:bg-surface-container rounded-full transition-colors"
               onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
+              aria-label="Next month"
             >
               <span className="material-symbols-outlined">chevron_right</span>
             </button>
@@ -246,14 +270,20 @@ export default function CalendarPage() {
               return (
                 <div
                   key={day.toISOString()}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${format(day, "MMMM d")}${isToday ? ", today" : ""}${isSelected ? ", selected" : ""}`}
                   onClick={() => { setSelectedDate(day); setViewMode("daily"); }}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedDate(day); setViewMode("daily"); } }}
                   className={`
-                    flex flex-col items-center justify-center cursor-pointer rounded-xl transition-colors min-h-[52px] px-1
-                    ${isSelected ? "bg-primary text-white" : isToday ? "ring-1 ring-primary hover:bg-surface-container" : "hover:bg-surface-container"}
-                    ${!isCurrentMonth ? "opacity-25" : ""}
+                    flex flex-col items-center justify-center cursor-pointer rounded-xl transition-colors min-h-[52px] px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
+                    ${isSelected ? "bg-primary text-white" : "hover:bg-surface-container"}
+                    ${!isCurrentMonth ? "opacity-40" : ""}
                   `}
                 >
-                  <span className="text-sm font-medium">{format(day, "d")}</span>
+                  <span className={`text-sm font-medium flex items-center justify-center ${isToday && !isSelected ? "bg-primary text-white rounded-full w-7 h-7" : ""}`}>
+                    {format(day, "d")}
+                  </span>
                   <div className="flex gap-0.5 mt-0.5 h-2">
                     {hasEnrolled && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/70" : "bg-red-500"}`} />}
                     {hasAvailable && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/70" : "bg-green-500"}`} />}
