@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { PhotoUpload } from "./PhotoUpload";
 
 interface Club {
   id: number;
@@ -147,16 +148,12 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-secondary">Chat Link</label>
-            <Input value={chatLink} onChange={e => setChatLink(e.target.value)} className="h-11 rounded-xl bg-surface" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-secondary">Profile Photo URL</label>
-            <Input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} className="h-11 rounded-xl bg-surface" />
-          </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-secondary">Chat Link</label>
+          <Input value={chatLink} onChange={e => setChatLink(e.target.value)} className="h-11 rounded-xl bg-surface" />
         </div>
+
+        <PhotoUpload value={photoUrl} onChange={setPhotoUrl} label="Profile Photo" />
 
         <div className="pt-4 border-t border-outline-variant/20">
           <div className="flex items-center justify-between mb-4">

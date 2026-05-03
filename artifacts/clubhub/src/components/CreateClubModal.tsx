@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getGetLeadingClubsQueryKey, getGetClubsQueryKey } from "@workspace/api-client-react";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
+import { PhotoUpload } from "./PhotoUpload";
 
 export function CreateClubModal({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
@@ -112,16 +113,12 @@ export function CreateClubModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-secondary">Chat Link (Optional)</label>
-              <Input value={chatLink} onChange={e => setChatLink(e.target.value)} placeholder="Discord, WhatsApp, etc." className="h-11 rounded-xl bg-surface" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-secondary">Profile Photo URL (Optional)</label>
-              <Input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} placeholder="https://..." className="h-11 rounded-xl bg-surface" />
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-secondary">Chat Link (Optional)</label>
+            <Input value={chatLink} onChange={e => setChatLink(e.target.value)} placeholder="Discord, WhatsApp, etc." className="h-11 rounded-xl bg-surface" />
           </div>
+
+          <PhotoUpload value={photoUrl} onChange={setPhotoUrl} />
 
           <div className="pt-4 border-t border-outline-variant/20">
             <div className="flex items-center justify-between mb-4">

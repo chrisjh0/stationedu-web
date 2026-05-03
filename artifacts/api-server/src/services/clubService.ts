@@ -66,9 +66,16 @@ export interface CreateClubInput {
 
 export async function listClubs(
   userId: number,
-  userEmail: string
+  userEmail: string,
+  limit: number = 12,
+  offset: number = 0
 ): Promise<ServiceResult<ClubListItem[]>> {
-  const clubs = await db.select().from(clubsTable).orderBy(asc(clubsTable.name));
+  const clubs = await db
+    .select()
+    .from(clubsTable)
+    .orderBy(asc(clubsTable.name))
+    .limit(limit)
+    .offset(offset);
   const enrollments = await db
     .select()
     .from(enrollmentsTable)

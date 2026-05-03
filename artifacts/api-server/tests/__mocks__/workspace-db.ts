@@ -57,10 +57,9 @@ export const pool = { end: jest.fn() } as any;
 
 export function chain(result: unknown) {
   const c: any = {};
-  for (const m of ['from', 'where', 'innerJoin', 'leftJoin', 'set', 'values', 'orderBy']) {
+  for (const m of ['from', 'where', 'innerJoin', 'leftJoin', 'set', 'values', 'orderBy', 'limit', 'offset']) {
     c[m] = jest.fn().mockReturnValue(c);
   }
-  c.limit = jest.fn().mockResolvedValue(result);
   c.returning = jest.fn().mockResolvedValue(result);
   c.onConflictDoNothing = jest.fn().mockResolvedValue(result);
   c.then = (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>

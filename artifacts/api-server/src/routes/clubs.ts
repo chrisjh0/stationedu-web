@@ -20,12 +20,18 @@ function parseId(raw: string | undefined): number | null {
 
 router.get("/clubs", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const result = await listClubs(req.userId!, req.userEmail!);
+    const rawLimit = parseInt((req.query.limit as string) || "12", 10);
+    const rawOffset = parseInt((req.query.offset as string) || "0", 10);
+    const limit = isNaN(rawLimit) || rawLimit <= 0 ? 12 : Math.min(rawLimit, 100);
+    const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset;
+
+    const result = await listClubs(req.userId!, req.userEmail!, limit, offset);
     if (!result.ok) {
       res.status(result.status).json({ success: false, error: result.error });
       return;
     }
-    res.json({ success: true, clubs: result.data });
+    const hasMore = result.data.length === limit;
+    res.json({ success: true, clubs: result.data, hasMore });
   } catch (e) {
     req.log.error({ err: e }, "GET /clubs error");
     res.status(500).json({ success: false, error: "An unexpected error occurred" });

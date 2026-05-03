@@ -29,9 +29,12 @@ import type {
   ErrorResponse,
   EventsListResponse,
   GetCalendarEventsParams,
+  GetClubsParams,
   GoogleCallbackParams,
   HealthStatus,
   LeadingClubsResponse,
+  RequestUploadUrlBody,
+  RequestUploadUrlResponse,
   SuccessResponse,
   UpdateUserSettingsBody,
   UserMeResponse,
@@ -361,37 +364,57 @@ export const useUpdateUserSettings = <
 /**
  * @summary Get all clubs with enrollment status
  */
-export const getGetClubsUrl = () => {
-  return `/api/clubs`;
+export const getGetClubsUrl = (params?: GetClubsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/clubs?${stringifiedParams}`
+    : `/api/clubs`;
 };
 
 export const getClubs = async (
+  params?: GetClubsParams,
   options?: RequestInit,
 ): Promise<ClubsListResponse> => {
-  return customFetch<ClubsListResponse>(getGetClubsUrl(), {
+  return customFetch<ClubsListResponse>(getGetClubsUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetClubsQueryKey = () => {
-  return [`/api/clubs`] as const;
+export const getGetClubsQueryKey = (params?: GetClubsParams) => {
+  return [`/api/clubs`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetClubsQueryOptions = <
   TData = Awaited<ReturnType<typeof getClubs>>,
   TError = ErrorType<ErrorResponse>,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof getClubs>>, TError, TData>;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  params?: GetClubsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getClubs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetClubsQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getGetClubsQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getClubs>>> = ({
     signal,
-  }) => getClubs({ signal, ...requestOptions });
+  }) => getClubs(params, { signal, ...requestOptions });
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getClubs>>,
@@ -412,11 +435,18 @@ export type GetClubsQueryError = ErrorType<ErrorResponse>;
 export function useGetClubs<
   TData = Awaited<ReturnType<typeof getClubs>>,
   TError = ErrorType<ErrorResponse>,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof getClubs>>, TError, TData>;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetClubsQueryOptions(options);
+>(
+  params?: GetClubsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getClubs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetClubsQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -1356,6 +1386,92 @@ export function useGetCalendarEvents<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Request a presigned URL for direct file upload to object storage
+ */
+export const getRequestUploadUrlUrl = () => {
+  return `/api/storage/uploads/request-url`;
+};
+
+export const requestUploadUrl = async (
+  requestUploadUrlBody: RequestUploadUrlBody,
+  options?: RequestInit,
+): Promise<RequestUploadUrlResponse> => {
+  return customFetch<RequestUploadUrlResponse>(getRequestUploadUrlUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(requestUploadUrlBody),
+  });
+};
+
+export const getRequestUploadUrlMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestUploadUrl>>,
+    TError,
+    { data: BodyType<RequestUploadUrlBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof requestUploadUrl>>,
+  TError,
+  { data: BodyType<RequestUploadUrlBody> },
+  TContext
+> => {
+  const mutationKey = ["requestUploadUrl"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof requestUploadUrl>>,
+    { data: BodyType<RequestUploadUrlBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return requestUploadUrl(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RequestUploadUrlMutationResult = NonNullable<
+  Awaited<ReturnType<typeof requestUploadUrl>>
+>;
+export type RequestUploadUrlMutationBody = BodyType<RequestUploadUrlBody>;
+export type RequestUploadUrlMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Request a presigned URL for direct file upload to object storage
+ */
+export const useRequestUploadUrl = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestUploadUrl>>,
+    TError,
+    { data: BodyType<RequestUploadUrlBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof requestUploadUrl>>,
+  TError,
+  { data: BodyType<RequestUploadUrlBody> },
+  TContext
+> => {
+  return useMutation(getRequestUploadUrlMutationOptions(options));
+};
 
 /**
  * @summary Redirect to Google OAuth

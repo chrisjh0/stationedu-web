@@ -22,6 +22,8 @@ tags:
     description: Club enrollment
   - name: calendar
     description: Calendar data
+  - name: storage
+    description: Object storage
 
 paths:
   /healthz:
@@ -111,6 +113,19 @@ paths:
       summary: Get all clubs with enrollment status
       security:
         - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 12
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
       responses:
         "200":
           description: All clubs
@@ -461,6 +476,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [storage]
+      summary: Request a presigned URL for direct file upload to object storage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestUploadUrlBody"
+      responses:
+        "200":
+          description: Presigned upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestUploadUrlResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /auth/google/login:
     get:
       operationId: googleLogin
@@ -697,9 +745,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ClubSummary"
+        hasMore:
+          type: boolean
       required:
         - success
         - clubs
+        - hasMore
 
     LeadingClub:
       type: object
@@ -978,3 +1029,37 @@ components:
       required:
         - success
         - events
+
+    RequestUploadUrlBody:
+      type: object
+      properties:
+        name:
+          type: string
+        size:
+          type: integer
+        contentType:
+          type: string
+      required:
+        - name
+        - size
+        - contentType
+
+    RequestUploadUrlResponse:
+      type: object
+      properties:
+        uploadURL:
+          type: string
+        objectPath:
+          type: string
+        metadata:
+          type: object
+          properties:
+            name:
+              type: string
+            size:
+              type: integer
+            contentType:
+              type: string
+      required:
+        - uploadURL
+        - objectPath

@@ -55,15 +55,23 @@ ClubHub is a full-stack school club management web app. Students can discover cl
 - `/calendar` — Daily/monthly calendar with event dots and day schedule
 - `/clubs` — Grid of enrolled clubs
 - `/leadership` — Leadership Hub: manage your clubs, create events
-- `/directory` — Explore all clubs with search + filters
+- `/directory` — Explore all clubs with search + filters + Load More pagination (12/page)
 - `/settings` — Account settings and notification preferences
 
 ### Design System
 - Primary color: `#004AC6` (Electric Blue)
 - Fonts: Lexend (headings) + Inter (body) from Google Fonts
 - Floating pill nav bar (top, glassmorphism), NO sidebar
+- Mobile: hamburger button opens slide-in drawer from right with full nav links + user info
 - Cards: white, rounded-2xl, soft shadow
 - Material Symbols Outlined for icons
+
+### Object Storage (Club Photos)
+- Bucket: `replit-objstore-181b31fc-68db-4f61-939a-d0ad77fba3af`
+- Upload flow: POST `/api/storage/uploads/request-url` (JWT required) → PUT presigned URL → store `/api/storage/objects/…` URL in DB
+- Serving: GET `/api/storage/objects/*` (public, no auth) and GET `/api/storage/public-objects/*`
+- Validation: JPG/GIF/PNG only, max 800 KB — enforced in `PhotoUpload` component
+- `PhotoUpload` component in `artifacts/clubhub/src/components/PhotoUpload.tsx` — used in Create and Edit modals
 
 ## Key Environment Variables
 - `DATABASE_URL` — PostgreSQL connection string (auto-provisioned)
@@ -71,6 +79,9 @@ ClubHub is a full-stack school club management web app. Students can discover cl
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional, dev-login works without)
 - `GOOGLE_CALLBACK_URL` — OAuth callback URL (optional, auto-detected from request)
 - `NODE_ENV` — Set to `production` to disable dev-login endpoint
+- `DEFAULT_OBJECT_STORAGE_BUCKET_ID` — Replit Object Storage bucket ID (auto-set)
+- `PUBLIC_OBJECT_SEARCH_PATHS` — Comma-separated GCS paths for public object search (auto-set)
+- `PRIVATE_OBJECT_DIR` — GCS path prefix for uploaded club photos (auto-set)
 
 ## Codegen Note
 After editing `lib/api-spec/openapi.yaml`, always run:

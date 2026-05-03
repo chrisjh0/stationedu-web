@@ -96,6 +96,7 @@ export interface ClubSummary {
 export interface ClubsListResponse {
   success: boolean;
   clubs: ClubSummary[];
+  hasMore: boolean;
 }
 
 export type LeadingClubType =
@@ -236,6 +237,29 @@ export interface CalendarEventsResponse {
   success: boolean;
   events: CalendarEvent[];
 }
+
+export interface RequestUploadUrlBody {
+  name: string;
+  size: number;
+  contentType: string;
+}
+
+export type RequestUploadUrlResponseMetadata = {
+  name?: string;
+  size?: number;
+  contentType?: string;
+};
+
+export interface RequestUploadUrlResponse {
+  uploadURL: string;
+  objectPath: string;
+  metadata?: RequestUploadUrlResponseMetadata;
+}
+
+export type GetClubsParams = {
+  limit?: number;
+  offset?: number;
+};
 
 export type GetCalendarEventsParams = {
   year?: number;

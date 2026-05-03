@@ -74,6 +74,14 @@ export const UpdateUserSettingsResponse = zod.object({
 /**
  * @summary Get all clubs with enrollment status
  */
+export const getClubsQueryLimitDefault = 12;
+export const getClubsQueryOffsetDefault = 0;
+
+export const GetClubsQueryParams = zod.object({
+  limit: zod.coerce.number().default(getClubsQueryLimitDefault),
+  offset: zod.coerce.number().default(getClubsQueryOffsetDefault),
+});
+
 export const GetClubsResponse = zod.object({
   success: zod.boolean(),
   clubs: zod.array(
@@ -91,6 +99,7 @@ export const GetClubsResponse = zod.object({
       is_leader: zod.boolean(),
     }),
   ),
+  hasMore: zod.boolean(),
 });
 
 /**
@@ -309,6 +318,27 @@ export const GetCalendarEventsResponse = zod.object({
       is_enrolled: zod.boolean(),
     }),
   ),
+});
+
+/**
+ * @summary Request a presigned URL for direct file upload to object storage
+ */
+export const RequestUploadUrlBody = zod.object({
+  name: zod.string(),
+  size: zod.number(),
+  contentType: zod.string(),
+});
+
+export const RequestUploadUrlResponse = zod.object({
+  uploadURL: zod.string(),
+  objectPath: zod.string(),
+  metadata: zod
+    .object({
+      name: zod.string().optional(),
+      size: zod.number().optional(),
+      contentType: zod.string().optional(),
+    })
+    .optional(),
 });
 
 /**
