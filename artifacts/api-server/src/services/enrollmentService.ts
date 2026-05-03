@@ -1,7 +1,6 @@
 import { db, enrollmentsTable, clubsTable, clubLeadersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { ok, err, type ServiceResult } from "./types.js";
-import { resolveLeaderStatus } from "./leaderHelpers.js";
 
 export async function enroll(
   clubId: number,

@@ -1,8 +1,8 @@
 import { useGetClub, useEnrollInClub, useUnenrollFromClub, getGetClubQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { getClubColor } from "@/lib/color-utils";
-import { getGetClubsQueryKey, getGetCalendarEventsQueryKey, getGetLeadingClubsQueryKey } from "@workspace/api-client-react";
+import { getGetClubsQueryKey, getGetCalendarEventsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";

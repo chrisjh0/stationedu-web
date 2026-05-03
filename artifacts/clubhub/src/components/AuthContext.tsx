@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { useGetCurrentUser, getGetCurrentUserQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem("clubhub_token"));
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const [user, setLocalUser] = useState<UserProfile | null>(null);
 
   const { data: userData, isLoading: isUserLoading, isError } = useGetCurrentUser({
     query: {
@@ -33,7 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  const [user, setLocalUser] = useState<UserProfile | null>(null);
+  const logout = useCallback(() => {
+    localStorage.removeItem("clubhub_token");
+    setToken(null);
+    setLocalUser(null);
+    queryClient.removeQueries({ queryKey: getGetCurrentUserQueryKey() });
+    setLocation("/login");
+  }, [queryClient, setLocation]);
 
   useEffect(() => {
     if (userData?.success && userData.user) {
@@ -45,20 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isError) {
       logout();
     }
-  }, [isError]);
+  }, [isError, logout]);
 
   const login = (newToken: string) => {
     localStorage.setItem("clubhub_token", newToken);
     setToken(newToken);
     setLocation("/calendar");
-  };
-
-  const logout = () => {
-    localStorage.removeItem("clubhub_token");
-    setToken(null);
-    setLocalUser(null);
-    queryClient.removeQueries({ queryKey: getGetCurrentUserQueryKey() });
-    setLocation("/login");
   };
 
   const setUser = (newUser: UserProfile) => {

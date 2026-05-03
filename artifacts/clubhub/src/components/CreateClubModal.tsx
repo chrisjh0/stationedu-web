@@ -70,7 +70,7 @@ export function CreateClubModal({ onClose }: { onClose: () => void }) {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-secondary">Club Type *</label>
-              <Select value={type} onValueChange={(v: any) => setType(v)}>
+              <Select value={type} onValueChange={(v: string) => setType(v)}>
                 <SelectTrigger className="h-11 rounded-xl bg-surface">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>

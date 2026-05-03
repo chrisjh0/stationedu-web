@@ -108,7 +108,7 @@ router.get("/auth/google/callback", async (req, res) => {
     }
 
     const token = generateToken(user.id, user.email);
-    res.redirect(`/?token=${token}`);
+    res.redirect(`/login?token=${token}`);
   } catch (err) {
     req.log.error({ err }, "OAuth callback error");
     res.redirect("/login?error=oauth_failed");

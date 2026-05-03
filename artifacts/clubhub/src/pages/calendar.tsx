@@ -88,7 +88,7 @@ export default function CalendarPage() {
           {["All", "Enrolled", "Available"].map(f => (
             <button 
               key={f}
-              onClick={() => setFilter(f as any)}
+              onClick={() => setFilter(f as "All" | "Enrolled" | "Available")}
               className={`px-3 py-1 rounded-full text-xs font-medium border ${filter === f ? 'bg-secondary text-white border-secondary' : 'border-outline-variant text-secondary hover:bg-surface-container'}`}
             >
               {f === "All" ? "All Events" : f}

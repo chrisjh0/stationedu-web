@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useGetClubEvents, useCreateClubEvent, useDeleteEvent } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetClubEventsQueryKey, getGetCalendarEventsQueryKey, getGetLeadingClubsQueryKey } from "@workspace/api-client-react";
 import { toast } from "sonner";

@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "./AuthContext";
 import { Avatar, AvatarFallback } from "./ui/avatar";

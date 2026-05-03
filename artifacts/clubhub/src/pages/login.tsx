@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "../components/AuthContext";
 import { Button } from "../components/ui/button";
 
@@ -28,8 +28,8 @@ export default function Login() {
       if (data.token) {
         login(data.token);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // dev login failed silently
     }
   };
 
