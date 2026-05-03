@@ -11,6 +11,13 @@ import {
 
 const router = Router();
 
+/** Parse a route param as a positive integer; return null if invalid. */
+function parseId(raw: string | undefined): number | null {
+  if (!raw) return null;
+  const n = parseInt(raw, 10);
+  return isNaN(n) || n <= 0 ? null : n;
+}
+
 router.get("/clubs", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const result = await listClubs(req.userId!, req.userEmail!);
@@ -41,9 +48,9 @@ router.get("/clubs/leading", requireAuth, async (req: AuthenticatedRequest, res)
 
 router.get("/clubs/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) {
-      res.status(404).json({ success: false, error: "Not found" });
+    const id = parseId(req.params.id as string);
+    if (id === null) {
+      res.status(400).json({ success: false, error: "Club ID must be a positive integer" });
       return;
     }
     const result = await getClub(id, req.userId!, req.userEmail!);
@@ -74,9 +81,9 @@ router.post("/clubs", requireAuth, async (req: AuthenticatedRequest, res) => {
 
 router.put("/clubs/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) {
-      res.status(404).json({ success: false, error: "Not found" });
+    const id = parseId(req.params.id as string);
+    if (id === null) {
+      res.status(400).json({ success: false, error: "Club ID must be a positive integer" });
       return;
     }
     const result = await updateClub(id, req.body, req.userId!, req.userEmail!);
@@ -93,9 +100,9 @@ router.put("/clubs/:id", requireAuth, async (req: AuthenticatedRequest, res) => 
 
 router.delete("/clubs/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) {
-      res.status(404).json({ success: false, error: "Not found" });
+    const id = parseId(req.params.id as string);
+    if (id === null) {
+      res.status(400).json({ success: false, error: "Club ID must be a positive integer" });
       return;
     }
     const result = await deleteClub(id, req.userId!, req.userEmail!);

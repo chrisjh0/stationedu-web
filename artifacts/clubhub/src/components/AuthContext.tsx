@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem("clubhub_token"));
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [user, setLocalUser] = useState<UserProfile | null>(null);
 
   const { data: userData, isLoading: isUserLoading, isError } = useGetCurrentUser({
     query: {
@@ -34,24 +33,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
+  // Derive user directly from query data — no separate local state needed.
+  const user = userData?.success && userData.user ? (userData.user as UserProfile) : null;
+
   const logout = useCallback(() => {
     localStorage.removeItem("clubhub_token");
     setToken(null);
-    setLocalUser(null);
     queryClient.removeQueries({ queryKey: getGetCurrentUserQueryKey() });
     setLocation("/login");
   }, [queryClient, setLocation]);
 
+  // Side-effect: when the /user/me query fails (expired token, revoked session),
+  // clear auth state and redirect to login. logout() is a stable useCallback —
+  // calling it from an effect is the correct React pattern here; the rule fires
+  // only because logout internally calls setToken, which is indirect, not a
+  // direct data-sync setState in the effect body.
   useEffect(() => {
-    if (userData?.success && userData.user) {
-      setLocalUser(userData.user as UserProfile);
-    }
-  }, [userData]);
-
-  useEffect(() => {
-    if (isError) {
-      logout();
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (isError) logout();
   }, [isError, logout]);
 
   const login = (newToken: string) => {
@@ -60,8 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLocation("/calendar");
   };
 
+  // Write the updated profile directly into the query cache so the navbar
+  // reflects the change immediately without waiting for a refetch.
   const setUser = (newUser: UserProfile) => {
-    setLocalUser(newUser);
+    queryClient.setQueryData(getGetCurrentUserQueryKey(), { success: true, user: newUser });
   };
 
   return (

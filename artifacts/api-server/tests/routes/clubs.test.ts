@@ -169,14 +169,15 @@ describe('Clubs Routes', () => {
       expect(res.body.error).toBe('Not found');
     });
 
-    it('404 - invalid id param', async () => {
+    it('400 - non-numeric id returns bad request', async () => {
       mockDb.select.mockReturnValueOnce(chain([TEST_USER]));
 
       const res = await request(app)
         .get('/api/clubs/abc')
         .set('Authorization', `Bearer ${token}`);
 
-      expect(res.status).toBe(404);
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Club ID must be a positive integer');
     });
 
     it('401 - missing auth', async () => {
@@ -370,6 +371,18 @@ describe('Clubs Routes', () => {
       expect(res.body.error).toBe('A club with that name already exists');
     });
 
+    it('400 - non-numeric id returns bad request', async () => {
+      mockDb.select.mockReturnValueOnce(chain([TEST_USER]));
+
+      const res = await request(app)
+        .put('/api/clubs/abc')
+        .set('Authorization', `Bearer ${token}`)
+        .send(updateBody);
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Club ID must be a positive integer');
+    });
+
     it('401 - missing auth', async () => {
       const res = await request(app).put('/api/clubs/1').send(updateBody);
       expect(res.status).toBe(401);
@@ -416,6 +429,17 @@ describe('Clubs Routes', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(403);
+    });
+
+    it('400 - non-numeric id returns bad request', async () => {
+      mockDb.select.mockReturnValueOnce(chain([TEST_USER]));
+
+      const res = await request(app)
+        .delete('/api/clubs/abc')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Club ID must be a positive integer');
     });
 
     it('401 - missing auth', async () => {
