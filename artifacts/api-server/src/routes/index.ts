@@ -1,11 +1,12 @@
 import { Router, type IRouter } from "express";
-import healthRouter from "./health";
-import authRouter from "./auth";
-import userRouter from "./user";
-import clubsRouter from "./clubs";
-import eventsRouter from "./events";
-import enrollmentRouter from "./enrollment";
-import calendarRouter from "./calendar";
+import healthRouter from "./health.js";
+import authRouter from "./auth.js";
+import userRouter from "./user.js";
+import clubsRouter from "./clubs.js";
+import eventsRouter from "./events.js";
+import enrollmentRouter from "./enrollment.js";
+import calendarRouter from "./calendar.js";
+import leadersRouter from "./leaders.js";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(clubsRouter);
 router.use(eventsRouter);
 router.use(enrollmentRouter);
 router.use(calendarRouter);
+router.use(leadersRouter);
 
 export default router;
