@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "./AuthContext";
-import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useGetLeadingClubs, useGetNotifications, getGetNotificationsQueryKey } from "@workspace/api-client-react";
 import { format, parseISO } from "date-fns";
+
+const APP_NAME = import.meta.env.VITE_APP_NAME ?? "ClubHub";
 
 const NAV_LINKS = [
   { href: "/calendar",    label: "Calendar",       icon: "calendar_month" },
@@ -56,9 +58,9 @@ export function NavBar() {
       <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl h-16 bg-white/70 backdrop-blur-[20px] rounded-full shadow-sm z-50 flex items-center justify-between px-6">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">
-            C
+            {APP_NAME.charAt(0).toUpperCase()}
           </div>
-          <span className="font-semibold text-lg hidden md:block">ClubHub</span>
+          <span className="font-semibold text-lg hidden md:block">{APP_NAME}</span>
         </div>
 
         <nav className="hidden md:flex items-center gap-1">
@@ -98,6 +100,7 @@ export function NavBar() {
             className="flex items-center gap-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
           >
             <Avatar className="w-9 h-9 border border-outline-variant/30">
+              {user.profile_photo && <AvatarImage src={user.profile_photo} alt={user.full_name ?? "Avatar"} />}
               <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
                 {user.full_name?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
@@ -117,9 +120,9 @@ export function NavBar() {
             <div className="flex items-center justify-between px-6 py-5 border-b border-outline-variant/20">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-base">
-                  C
+                  {APP_NAME.charAt(0).toUpperCase()}
                 </div>
-                <span className="font-semibold text-lg">ClubHub</span>
+                <span className="font-semibold text-lg">{APP_NAME}</span>
               </div>
               <button
                 onClick={closeDrawer}
@@ -146,6 +149,7 @@ export function NavBar() {
 
             <div className="px-6 py-5 border-t border-outline-variant/20 flex items-center gap-3">
               <Avatar className="w-9 h-9 border border-outline-variant/30">
+                {user.profile_photo && <AvatarImage src={user.profile_photo} alt={user.full_name ?? "Avatar"} />}
                 <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
                   {user.full_name?.charAt(0).toUpperCase() || "U"}
                 </AvatarFallback>

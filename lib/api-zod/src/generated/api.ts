@@ -24,6 +24,7 @@ export const GetCurrentUserResponse = zod.object({
     email: zod.string(),
     full_name: zod.string(),
     graduation_year: zod.number().nullish(),
+    profile_photo: zod.string(),
   }),
 });
 
@@ -35,6 +36,7 @@ export const GetUserSettingsResponse = zod.object({
   settings: zod.object({
     full_name: zod.string(),
     email: zod.string(),
+    profile_photo: zod.string(),
     notifications_email: zod.boolean(),
     notifications_reminders: zod.boolean(),
     notifications_new_clubs: zod.boolean(),
@@ -52,6 +54,7 @@ export const GetUserSettingsResponse = zod.object({
  */
 export const UpdateUserSettingsBody = zod.object({
   full_name: zod.string().optional(),
+  profile_photo: zod.string().optional(),
   notifications_email: zod.boolean().optional(),
   notifications_reminders: zod.boolean().optional(),
   notifications_new_clubs: zod.boolean().optional(),
@@ -68,6 +71,7 @@ export const UpdateUserSettingsResponse = zod.object({
   settings: zod.object({
     full_name: zod.string(),
     email: zod.string(),
+    profile_photo: zod.string(),
     notifications_email: zod.boolean(),
     notifications_reminders: zod.boolean(),
     notifications_new_clubs: zod.boolean(),

@@ -8,11 +8,13 @@ export interface UserProfile {
   email: string;
   full_name: string;
   graduation_year: number | null;
+  profile_photo: string;
 }
 
 export interface UserSettings {
   full_name: string;
   email: string;
+  profile_photo: string;
   notifications_email: boolean;
   notifications_reminders: boolean;
   notifications_new_clubs: boolean;
@@ -26,6 +28,7 @@ export interface UserSettings {
 
 export interface UpdateSettingsInput {
   full_name?: string;
+  profile_photo?: string;
   notifications_email?: boolean;
   notifications_reminders?: boolean;
   notifications_new_clubs?: boolean;
@@ -54,6 +57,7 @@ export async function getMe(userId: number): Promise<ServiceResult<UserProfile>>
     email: u.email,
     full_name: u.full_name,
     graduation_year: u.graduation_year,
+    profile_photo: u.profile_photo,
   });
 }
 
@@ -72,6 +76,7 @@ export async function getSettings(userId: number): Promise<ServiceResult<UserSet
   return ok({
     full_name: u.full_name,
     email: u.email,
+    profile_photo: u.profile_photo,
     notifications_email: u.notifications_email,
     notifications_reminders: u.notifications_reminders,
     notifications_new_clubs: u.notifications_new_clubs,
@@ -92,6 +97,10 @@ export async function updateSettings(
 
   if (input.full_name !== undefined) {
     updates.full_name = htmlEscape(String(input.full_name));
+  }
+  if (input.profile_photo !== undefined) {
+    const url = String(input.profile_photo);
+    updates.profile_photo = url.startsWith("https://") ? url : "";
   }
   if (input.notifications_email !== undefined) {
     updates.notifications_email = Boolean(input.notifications_email);
@@ -137,6 +146,7 @@ export async function updateSettings(
   return ok({
     full_name: u.full_name,
     email: u.email,
+    profile_photo: u.profile_photo,
     notifications_email: u.notifications_email,
     notifications_reminders: u.notifications_reminders,
     notifications_new_clubs: u.notifications_new_clubs,

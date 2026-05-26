@@ -8,6 +8,7 @@ export interface UserProfile {
   email: string;
   full_name: string;
   graduation_year?: number | null;
+  profile_photo?: string;
 }
 
 interface AuthContextType {

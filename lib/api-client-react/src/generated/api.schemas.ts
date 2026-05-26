@@ -23,6 +23,7 @@ export interface UserProfile {
   email: string;
   full_name: string;
   graduation_year?: number | null;
+  profile_photo: string;
 }
 
 export interface AuthResponse {
@@ -39,6 +40,7 @@ export interface UserMeResponse {
 export interface UserSettings {
   full_name: string;
   email: string;
+  profile_photo: string;
   notifications_email: boolean;
   notifications_reminders: boolean;
   notifications_new_clubs: boolean;
@@ -57,6 +59,7 @@ export interface UserSettingsResponse {
 
 export interface UpdateUserSettingsBody {
   full_name?: string;
+  profile_photo?: string;
   notifications_email?: boolean;
   notifications_reminders?: boolean;
   notifications_new_clubs?: boolean;

@@ -1,108 +1,74 @@
 import { Router, type IRouter, type Response } from "express";
-import { Readable } from "stream";
-import { RequestUploadUrlBody, RequestUploadUrlResponse } from "@workspace/api-zod";
-import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage.js";
+import { randomUUID } from "crypto";
+import { createClient } from "@supabase/supabase-js";
+import multer from "multer";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/auth.js";
 
 const router: IRouter = Router();
-const objectStorageService = new ObjectStorageService();
+
+const BUCKET = "club-photos";
+const ALLOWED_TYPES = ["image/jpeg", "image/gif", "image/png", "image/webp"];
+
+function getSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) throw new Error("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set");
+  return createClient(url, key);
+}
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 800 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    cb(null, ALLOWED_TYPES.includes(file.mimetype));
+  },
+});
 
 /**
- * POST /storage/uploads/request-url
+ * POST /storage/uploads
  *
- * Request a presigned URL for file upload. Protected — requires JWT auth.
- * The client sends JSON metadata (name, size, contentType) — NOT the file.
- * Then the client uploads the file directly to the returned presigned URL.
+ * Accept a multipart image, upload it to Supabase Storage, and return the
+ * public URL. Protected — requires JWT auth.
  */
 router.post(
-  "/storage/uploads/request-url",
+  "/storage/uploads",
   requireAuth,
+  upload.single("file"),
   async (req: AuthenticatedRequest, res: Response) => {
-    const parsed = RequestUploadUrlBody.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ success: false, error: "Missing or invalid required fields" });
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({ success: false, error: "No valid image file provided" });
       return;
     }
 
     try {
-      const { name, size, contentType } = parsed.data;
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      const supabase = getSupabase();
+      const ext = file.mimetype === "image/jpeg" ? "jpg" : file.mimetype.split("/")[1];
+      const filename = `${randomUUID()}.${ext}`;
 
-      res.json(
-        RequestUploadUrlResponse.parse({
-          uploadURL,
-          objectPath,
-          metadata: { name, size, contentType },
-        })
-      );
-    } catch (error) {
-      req.log.error({ err: error }, "Error generating upload URL");
-      res.status(500).json({ success: false, error: "Failed to generate upload URL" });
+      const { data, error } = await supabase.storage
+        .from(BUCKET)
+        .upload(filename, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false,
+        });
+
+      if (error) {
+        req.log.error({ err: error }, "Supabase storage upload error");
+        res.status(500).json({ success: false, error: "Upload failed" });
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(BUCKET)
+        .getPublicUrl(data.path);
+
+      res.json({ success: true, url: publicUrl });
+    } catch (err) {
+      req.log.error({ err }, "Storage upload error");
+      res.status(500).json({ success: false, error: "Upload failed" });
     }
   }
 );
-
-/**
- * GET /storage/public-objects/*
- *
- * Serve public assets from PUBLIC_OBJECT_SEARCH_PATHS. Unconditionally public.
- */
-router.get("/storage/public-objects/*filePath", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const raw = req.params.filePath;
-    const filePath = Array.isArray(raw) ? raw.join("/") : raw;
-    const file = await objectStorageService.searchPublicObject(filePath);
-    if (!file) {
-      res.status(404).json({ success: false, error: "File not found" });
-      return;
-    }
-
-    const response = await objectStorageService.downloadObject(file);
-    res.status(response.status);
-    response.headers.forEach((value, key) => res.setHeader(key, value));
-    if (response.body) {
-      const nodeStream = Readable.fromWeb(response.body as ReadableStream<Uint8Array>);
-      nodeStream.pipe(res);
-    } else {
-      res.end();
-    }
-  } catch (error) {
-    req.log.error({ err: error }, "Error serving public object");
-    res.status(500).json({ success: false, error: "Failed to serve public object" });
-  }
-});
-
-/**
- * GET /storage/objects/*
- *
- * Serve uploaded club photos. Public read — no auth required for viewing.
- */
-router.get("/storage/objects/*path", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const raw = req.params.path;
-    const wildcardPath = Array.isArray(raw) ? raw.join("/") : raw;
-    const objectPath = `/objects/${wildcardPath}`;
-    const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
-
-    const response = await objectStorageService.downloadObject(objectFile);
-    res.status(response.status);
-    response.headers.forEach((value, key) => res.setHeader(key, value));
-    if (response.body) {
-      const nodeStream = Readable.fromWeb(response.body as ReadableStream<Uint8Array>);
-      nodeStream.pipe(res);
-    } else {
-      res.end();
-    }
-  } catch (error) {
-    if (error instanceof ObjectNotFoundError) {
-      req.log.warn({ err: error }, "Object not found");
-      res.status(404).json({ success: false, error: "Object not found" });
-      return;
-    }
-    req.log.error({ err: error }, "Error serving object");
-    res.status(500).json({ success: false, error: "Failed to serve object" });
-  }
-});
 
 export default router;

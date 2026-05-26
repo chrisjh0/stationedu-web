@@ -630,10 +630,13 @@ components:
         graduation_year:
           type: integer
           nullable: true
+        profile_photo:
+          type: string
       required:
         - id
         - email
         - full_name
+        - profile_photo
 
     UserMeResponse:
       type: object
@@ -671,9 +674,12 @@ components:
           type: boolean
         privacy_allow_dms:
           type: boolean
+        profile_photo:
+          type: string
       required:
         - full_name
         - email
+        - profile_photo
         - notifications_email
         - notifications_reminders
         - notifications_new_clubs
@@ -699,6 +705,8 @@ components:
       type: object
       properties:
         full_name:
+          type: string
+        profile_photo:
           type: string
         notifications_email:
           type: boolean

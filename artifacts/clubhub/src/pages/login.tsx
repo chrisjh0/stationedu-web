@@ -37,7 +37,7 @@ export default function Login() {
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F7F9FB] p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-[0px_10px_30px_rgba(15,23,42,0.04)] p-10 flex flex-col items-center">
         <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white font-bold text-3xl mb-6 shadow-lg shadow-primary/20">
-          C
+          {APP_NAME.charAt(0).toUpperCase()}
         </div>
 
         <h1 className="text-3xl font-bold font-lexend text-center text-on-surface mb-2">{APP_NAME}</h1>

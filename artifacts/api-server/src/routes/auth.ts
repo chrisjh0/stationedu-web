@@ -6,6 +6,7 @@ import { generateToken } from "../middlewares/auth";
 const router = Router();
 
 const ALLOWED_EMAIL_DOMAIN = process.env.ALLOWED_EMAIL_DOMAIN || "";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 function parseGraduationYear(email: string): number | null {
   const prefix = email.split("@")[0];
@@ -30,7 +31,7 @@ router.get("/auth/google/login", (req, res) => {
   const callbackUrl = process.env.GOOGLE_CALLBACK_URL || `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
 
   if (!clientId) {
-    res.redirect(`/login?error=oauth_not_configured`);
+    res.redirect(`${FRONTEND_URL}/login?error=oauth_not_configured`);
     return;
   }
 
@@ -49,7 +50,7 @@ router.get("/auth/google/callback", async (req, res) => {
   const { code, error } = req.query as { code?: string; error?: string };
 
   if (error || !code) {
-    res.redirect("/login?error=oauth_failed");
+    res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
     return;
   }
 
@@ -72,7 +73,7 @@ router.get("/auth/google/callback", async (req, res) => {
 
     const tokenData = await tokenRes.json() as { access_token?: string; error?: string };
     if (!tokenData.access_token) {
-      res.redirect("/login?error=oauth_failed");
+      res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
       return;
     }
 
@@ -82,12 +83,12 @@ router.get("/auth/google/callback", async (req, res) => {
     const profile = await profileRes.json() as { email?: string; name?: string };
 
     if (!profile.email) {
-      res.redirect("/login?error=oauth_failed");
+      res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
       return;
     }
 
     if (ALLOWED_EMAIL_DOMAIN && !profile.email.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) {
-      res.redirect("/login?error=domain");
+      res.redirect(`${FRONTEND_URL}/login?error=domain`);
       return;
     }
 
@@ -108,10 +109,10 @@ router.get("/auth/google/callback", async (req, res) => {
     }
 
     const token = generateToken(user.id, user.email);
-    res.redirect(`/login?token=${token}`);
+    res.redirect(`${FRONTEND_URL}/login?token=${token}`);
   } catch (err) {
     req.log.error({ err }, "OAuth callback error");
-    res.redirect("/login?error=oauth_failed");
+    res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
   }
 });
 

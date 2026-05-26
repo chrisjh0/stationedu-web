@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useGetUserSettings, useUpdateUserSettings } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/components/AuthContext";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ interface Settings {
   id?: number;
   email: string;
   full_name: string;
+  profile_photo?: string;
   notifications_email: boolean;
   notifications_reminders: boolean;
   notifications_new_clubs: boolean;
@@ -72,6 +73,44 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
   const { user, setUser } = useAuth();
   const updateMutation = useUpdateUserSettings();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUrl, setAvatarUrl] = useState(settings.profile_photo ?? "");
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const token = localStorage.getItem("clubhub_token");
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/storage/uploads", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? "Upload failed");
+      }
+      const { url } = await res.json() as { url: string };
+      setAvatarUrl(url);
+      updateMutation.mutate({ data: { profile_photo: url } }, {
+        onSuccess: () => {
+          toast.success("Avatar updated");
+          queryClient.invalidateQueries({ queryKey: getGetUserSettingsQueryKey() });
+          if (user) setUser({ ...user, profile_photo: url });
+        },
+        onError: (err) => { toast.error(err.message || "Failed to save avatar"); },
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const [fullName, setFullName] = useState(settings.full_name);
   const [notifEmail, setNotifEmail] = useState(settings.notifications_email);
@@ -118,12 +157,27 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
 
           <div className="flex items-center gap-6 mb-8 pb-8 border-b border-outline-variant/20">
             <Avatar className="w-20 h-20 border-2 border-primary/10">
+              {avatarUrl && <AvatarImage src={avatarUrl} alt={user?.full_name ?? "Avatar"} />}
               <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
                 {user?.full_name?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <div>
-              <Button variant="outline" className="rounded-full text-sm h-9 border-outline-variant text-secondary">Change Avatar</Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".jpg,.jpeg,.png,.gif,.webp"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
+              <Button
+                variant="outline"
+                className="rounded-full text-sm h-9 border-outline-variant text-secondary"
+                disabled={avatarUploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {avatarUploading ? "Uploading..." : "Change Avatar"}
+              </Button>
             </div>
           </div>
 
@@ -205,7 +259,7 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
             {[
               { label: "Show Profile to Other Students", desc: "Allow club members to see your name and photo", value: privacyShowProfile, set: setPrivacyShowProfile },
               { label: "Show Club Memberships", desc: "Display which clubs you belong to on your public profile", value: privacyShowMemberships, set: setPrivacyShowMemberships },
-              { label: "Allow Direct Messages", desc: "Let other students message you through ClubHub", value: privacyAllowDms, set: setPrivacyAllowDms },
+              { label: "Allow Direct Messages", desc: "Let other students message you through Station", value: privacyAllowDms, set: setPrivacyAllowDms },
             ].map(({ label, desc, value, set }) => (
               <div key={label} className="flex items-center justify-between py-3 border-b border-outline-variant/20">
                 <div>
@@ -232,7 +286,7 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
       {activeTab === "Appearance" && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <h2 className="text-xl font-semibold mb-2">Appearance</h2>
-          <p className="text-secondary text-sm mb-8">Customise how ClubHub looks for you.</p>
+          <p className="text-secondary text-sm mb-8">Customise how Station looks for you.</p>
 
           <div className="grid grid-cols-2 gap-4 max-w-md mb-8">
             {[

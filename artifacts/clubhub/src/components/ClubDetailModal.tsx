@@ -31,7 +31,7 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
       onSuccess: () => {
         toast.success("Enrolled successfully");
         queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
-        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetClubQueryKey(club.id) });
         onEnrollmentChange?.(club.id, true);
       },
@@ -46,7 +46,7 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
         toast.success("Unenrolled successfully");
         setConfirmUnenroll(false);
         queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
-        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetClubQueryKey(club.id) });
         onEnrollmentChange?.(club.id, false);
       },

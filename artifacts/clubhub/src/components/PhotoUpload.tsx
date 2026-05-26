@@ -1,37 +1,27 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/gif", "image/png"];
+const ALLOWED_TYPES = ["image/jpeg", "image/gif", "image/png", "image/webp"];
 const MAX_SIZE_BYTES = 800 * 1024;
 
 async function uploadToStorage(file: File): Promise<string> {
   const token = localStorage.getItem("clubhub_token");
-  const res = await fetch("/api/storage/uploads/request-url", {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/api/storage/uploads", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
   });
 
   if (!res.ok) {
-    throw new Error("Failed to get upload URL");
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error || "Upload failed");
   }
 
-  const { uploadURL, objectPath } = await res.json();
-
-  const putRes = await fetch(uploadURL, {
-    method: "PUT",
-    body: file,
-    headers: { "Content-Type": file.type },
-  });
-
-  if (!putRes.ok) {
-    throw new Error("Upload to storage failed");
-  }
-
-  return `/api/storage${objectPath}`;
+  const { url } = await res.json() as { url: string };
+  return url;
 }
 
 interface PhotoUploadProps {
@@ -52,7 +42,7 @@ export function PhotoUpload({ value, onChange, label = "Profile Photo (Optional)
     if (!file) return;
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error("Please choose a JPG, GIF, or PNG file");
+      toast.error("Please choose a JPG, GIF, PNG, or WebP file");
       return;
     }
     if (file.size > MAX_SIZE_BYTES) {
@@ -119,7 +109,7 @@ export function PhotoUpload({ value, onChange, label = "Profile Photo (Optional)
             ref={inputRef}
             id="photo-upload-input"
             type="file"
-            accept=".jpg,.jpeg,.gif,.png"
+            accept=".jpg,.jpeg,.gif,.png,.webp"
             className="hidden"
             onChange={handleFileChange}
             disabled={isUploading}
@@ -131,7 +121,7 @@ export function PhotoUpload({ value, onChange, label = "Profile Photo (Optional)
             <span className="material-symbols-outlined text-[16px] text-secondary">upload</span>
             {isUploading ? "Uploading…" : displaySrc ? "Change Photo" : "Upload Photo"}
           </label>
-          <p className="text-xs text-outline-variant">JPG, GIF or PNG · max 800 KB</p>
+          <p className="text-xs text-outline-variant">JPG, GIF, PNG or WebP · max 800 KB</p>
         </div>
       </div>
     </div>

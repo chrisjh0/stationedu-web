@@ -41,7 +41,7 @@ export function ManageEventsModal({ clubId, onClose }: { clubId: number, onClose
       onSuccess: () => {
         toast.success("Event added successfully");
         queryClient.invalidateQueries({ queryKey: getGetClubEventsQueryKey(clubId) });
-        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetLeadingClubsQueryKey() });
         setTitle("");
         setDate("");
@@ -60,7 +60,7 @@ export function ManageEventsModal({ clubId, onClose }: { clubId: number, onClose
       onSuccess: () => {
         toast.success("Event deleted");
         queryClient.invalidateQueries({ queryKey: getGetClubEventsQueryKey(clubId) });
-        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetLeadingClubsQueryKey() });
       },
       onError: (err) => toast.error(err.message || "Failed to delete event")

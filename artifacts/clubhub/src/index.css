@@ -48,6 +48,22 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Material Design 3 surface & role tokens */
+  --color-on-surface: hsl(var(--foreground));
+  --color-surface: hsl(0 0% 100%);
+  --color-surface-container-lowest: hsl(0 0% 100%);
+  --color-surface-container-low: hsl(210 20% 97%);
+  --color-surface-container: hsl(210 20% 95%);
+  --color-surface-container-high: hsl(210 20% 92%);
+  --color-primary-container: hsl(217 100% 75%);
+  --color-on-primary-container: hsl(217 100% 15%);
+  --color-tertiary-container: hsl(267 30% 65%);
+  --color-on-tertiary: hsl(0 0% 100%);
+  --color-on-tertiary-container: hsl(267 30% 15%);
+  --color-outline-variant: hsl(226 8% 80%);
+  --color-error: hsl(var(--destructive));
+  --color-on-error: hsl(0 0% 100%);
 }
 
 :root {
