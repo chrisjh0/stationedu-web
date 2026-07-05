@@ -5,7 +5,7 @@ RUN npm install -g pnpm@9
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY artifacts/api-server/package.json ./artifacts/api-server/
+COPY artifacts/api-server/package.json ./artifacts/api-server/package.json
 COPY lib/ ./lib/
 
 RUN pnpm install --ignore-scripts
