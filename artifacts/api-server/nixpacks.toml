@@ -1,8 +1,9 @@
 [phases.setup]
 nixPkgs = ["nodejs_20"]
+cmds = ["npm install -g pnpm@9"]
 
 [phases.install]
-cmds = ["npm install -g pnpm", "pnpm install --ignore-scripts"]
+cmds = ["pnpm install --ignore-scripts"]
 
 [phases.build]
 cmds = ["node ./build.mjs"]
