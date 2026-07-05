@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
 import { generateToken } from "../middlewares/auth";
+import { supabase } from "../lib/supabase.js";
 
 const router = Router();
 
 const ALLOWED_EMAIL_DOMAIN = process.env.ALLOWED_EMAIL_DOMAIN || "";
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const rawFrontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = rawFrontendUrl.startsWith("http") ? rawFrontendUrl : `https://${rawFrontendUrl}`;
 
 function parseGraduationYear(email: string): number | null {
   const prefix = email.split("@")[0];
@@ -59,28 +59,46 @@ router.get("/auth/google/callback", async (req, res) => {
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
     const callbackUrl = process.env.GOOGLE_CALLBACK_URL || `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
 
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: callbackUrl,
-        grant_type: "authorization_code",
-      }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
 
-    const tokenData = await tokenRes.json() as { access_token?: string; error?: string };
+    let tokenData: { access_token?: string; error?: string };
+    try {
+      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: callbackUrl,
+          grant_type: "authorization_code",
+        }),
+        signal: controller.signal,
+      });
+      tokenData = await tokenRes.json() as { access_token?: string; error?: string };
+    } finally {
+      clearTimeout(timeout);
+    }
+
     if (!tokenData.access_token) {
       res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
       return;
     }
 
-    const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const profile = await profileRes.json() as { email?: string; name?: string };
+    const profileController = new AbortController();
+    const profileTimeout = setTimeout(() => profileController.abort(), 10_000);
+
+    let profile: { email?: string; name?: string };
+    try {
+      const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        signal: profileController.signal,
+      });
+      profile = await profileRes.json() as { email?: string; name?: string };
+    } finally {
+      clearTimeout(profileTimeout);
+    }
 
     if (!profile.email) {
       res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
@@ -96,16 +114,29 @@ router.get("/auth/google/callback", async (req, res) => {
     const fullName = htmlEscape(profile.name || profile.email.split("@")[0]);
     const graduationYear = parseGraduationYear(email);
 
-    let users = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
-    let user = users[0];
+    const { data: users, error: selectError } = await supabase
+      .from("users")
+      .select("id, email, full_name")
+      .eq("email", email)
+      .limit(1);
+
+    if (selectError) throw selectError;
+
+    let user = users?.[0] as { id: number; email: string; full_name: string } | undefined;
 
     if (!user) {
-      const inserted = await db.insert(usersTable).values({
-        email,
-        full_name: fullName,
-        graduation_year: graduationYear,
-      }).returning();
-      user = inserted[0];
+      const { data: inserted, error: insertError } = await supabase
+        .from("users")
+        .insert({ email, full_name: fullName, graduation_year: graduationYear })
+        .select("id, email, full_name")
+        .single();
+
+      if (insertError || !inserted) {
+        req.log.error({ err: insertError }, "Failed to create user");
+        res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
+        return;
+      }
+      user = inserted as { id: number; email: string; full_name: string };
     }
 
     const token = generateToken(user.id, user.email);
@@ -124,16 +155,26 @@ router.get("/auth/dev-login", async (req, res) => {
 
   try {
     const email = "dev@clubhub.edu";
-    let users = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
-    let user = users[0];
+
+    const { data: users, error: selectError } = await supabase
+      .from("users")
+      .select("id, email, full_name")
+      .eq("email", email)
+      .limit(1);
+
+    if (selectError) throw selectError;
+
+    let user = users?.[0] as { id: number; email: string; full_name: string } | undefined;
 
     if (!user) {
-      const inserted = await db.insert(usersTable).values({
-        email,
-        full_name: "Dev User",
-        graduation_year: 2027,
-      }).returning();
-      user = inserted[0];
+      const { data: inserted, error: insertError } = await supabase
+        .from("users")
+        .insert({ email, full_name: "Dev User", graduation_year: 2027 })
+        .select("id, email, full_name")
+        .single();
+
+      if (insertError || !inserted) throw insertError;
+      user = inserted as { id: number; email: string; full_name: string };
     }
 
     const token = generateToken(user.id, user.email);
