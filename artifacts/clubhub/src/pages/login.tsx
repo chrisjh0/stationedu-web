@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 
 const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || "support@school.edu";
 const APP_NAME = import.meta.env.VITE_APP_NAME || "ClubHub";
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? "";
 
 const ERROR_MESSAGES: Record<string, string> = {
   domain: "Your email domain is not allowed. Please use your school email address.",
@@ -52,7 +53,7 @@ export default function Login() {
 
         <Button
           className="w-full h-12 text-base rounded-full bg-gradient-to-r from-primary to-primary-container hover:opacity-90 shadow-md shadow-primary/20 transition-all text-white"
-          onClick={() => { window.location.href = "/api/auth/google/login"; }}
+          onClick={() => { window.location.href = `${API_BASE}/api/auth/google/login`; }}
         >
           <span className="material-symbols-outlined mr-2">login</span>
           Sign in with Google
