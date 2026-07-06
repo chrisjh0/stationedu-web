@@ -6,6 +6,7 @@ import { ClubDetailModal } from "@/components/ClubDetailModal";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 12;
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? "";
 
 interface ClubItem {
   id: number;
@@ -36,7 +37,7 @@ async function fetchClubsPage(offset: number): Promise<{ clubs: ClubItem[]; hasM
   const token = localStorage.getItem("clubhub_token");
   let res: Response;
   try {
-    res = await fetch(`/api/clubs?limit=${PAGE_SIZE}&offset=${offset}`, {
+    res = await fetch(`${API_BASE}/api/clubs?limit=${PAGE_SIZE}&offset=${offset}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
   } catch {
