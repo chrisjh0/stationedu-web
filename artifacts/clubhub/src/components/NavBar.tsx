@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "./AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useGetLeadingClubs, useGetNotifications, getGetNotificationsQueryKey } from "@workspace/api-client-react";
+import { useGetNotifications, getGetNotificationsQueryKey } from "@workspace/api-client-react";
 import { format, parseISO } from "date-fns";
 
 const APP_NAME = import.meta.env.VITE_APP_NAME ?? "ClubHub";
@@ -28,23 +28,17 @@ export function NavBar() {
   const { user } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
-  const { data: leadingData } = useGetLeadingClubs();
   const { data: notifData } = useGetNotifications({
     query: { queryKey: getGetNotificationsQueryKey(), refetchInterval: 60_000, staleTime: 30_000 }
   });
 
   if (!user) return null;
 
-  const isLeader = !!(leadingData?.success && leadingData.clubs && leadingData.clubs.length > 0);
   const notifications = notifData?.success ? notifData.notifications : [];
   const unreadCount = notifData?.success ? notifData.unread_count : 0;
 
-  const desktopLinks = NAV_LINKS.filter(l =>
-    l.href !== "/settings" && (l.href !== "/leadership" || isLeader)
-  );
-  const mobileLinks = NAV_LINKS.filter(l =>
-    l.href !== "/leadership" || isLeader
-  );
+  const desktopLinks = NAV_LINKS.filter(l => l.href !== "/settings");
+  const mobileLinks = NAV_LINKS;
 
   const closeDrawer = () => setDrawerOpen(false);
 

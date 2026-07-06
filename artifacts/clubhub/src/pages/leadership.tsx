@@ -61,7 +61,7 @@ export default function LeadershipPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      {(isLoading || clubs.length > 0) && <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div className="md:col-span-2 bg-gradient-to-br from-primary to-tertiary-container rounded-3xl p-8 text-white flex flex-col justify-center relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-2xl font-bold mb-2">Welcome to your Hub</h2>
@@ -78,7 +78,7 @@ export default function LeadershipPage() {
           </h3>
           <p className="text-secondary font-medium">Upcoming Events</p>
         </div>
-      </div>
+      </div>}
 
       <h2 className="text-xl font-semibold mb-6">Clubs You Lead</h2>
 
