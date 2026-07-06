@@ -139,6 +139,7 @@ router.get("/auth/google/callback", async (req, res) => {
       user = inserted as { id: number; email: string; full_name: string };
     }
 
+    console.log("[auth] signing token for", user.email, "| JWT_SECRET prefix:", (process.env.JWT_SECRET || "clubhub-dev-secret-change-in-production").slice(0, 8));
     const token = generateToken(user.id, user.email);
     res.redirect(`${FRONTEND_URL}/login?token=${token}`);
   } catch (err) {
