@@ -54,11 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isError) logout();
   }, [isError, logout]);
 
-  const login = (newToken: string) => {
+  const login = useCallback((newToken: string) => {
     localStorage.setItem("clubhub_token", newToken);
     setToken(newToken);
-    setLocation("/calendar");
-  };
+    // Navigation is intentionally omitted here. Navigating before the
+    // useGetCurrentUser query resolves causes AuthGuard to see user=null
+    // and bounce the user back to /login. The login page's useEffect on
+    // `user` handles the redirect once auth state is confirmed.
+  }, []);
 
   // Write the updated profile directly into the query cache so the navbar
   // reflects the change immediately without waiting for a refetch.
