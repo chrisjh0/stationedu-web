@@ -9,19 +9,32 @@ import FinalCTA from './components/FinalCTA'
 import Footer from './components/Footer'
 import EmailClientPicker from './components/EmailClientPicker'
 
+const MAILTO = `mailto:31christopherho@gmail.com?subject=${encodeURIComponent('Demo Request — Station')}`
+
+const isMobile = () =>
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
 export default function App() {
   const [pickerOpen, setPickerOpen] = useState(false)
 
+  const handleDemoClick = () => {
+    if (isMobile()) {
+      window.location.href = MAILTO
+    } else {
+      setPickerOpen(true)
+    }
+  }
+
   return (
     <>
-      <Nav onDemoClick={() => setPickerOpen(true)} />
+      <Nav onDemoClick={handleDemoClick} />
       <main>
-        <Hero onDemoClick={() => setPickerOpen(true)} />
+        <Hero onDemoClick={handleDemoClick} />
         <Features />
         <ForStudents />
         <ForSchools />
         <FounderQuote />
-        <FinalCTA onDemoClick={() => setPickerOpen(true)} />
+        <FinalCTA onDemoClick={handleDemoClick} />
       </main>
       <Footer />
       <EmailClientPicker open={pickerOpen} onClose={() => setPickerOpen(false)} />
