@@ -27,32 +27,18 @@ export default function FounderQuote() {
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginTop: 30 }}>
-            {/* Founder photo placeholder */}
-            <div
+            <img
+              src="/christopher-ho-profile.jpeg"
+              alt="Christopher Ho"
               style={{
                 width: 52,
                 height: 52,
                 borderRadius: '50%',
-                background: '#E7EAF3',
+                objectFit: 'cover',
                 border: '1px solid #CAD1DF',
                 flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
               }}
-            >
-              <span
-                style={{
-                  fontFamily: '"Schibsted Grotesk", system-ui, sans-serif',
-                  fontWeight: 700,
-                  fontSize: 16,
-                  color: '#4C5567',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                CH
-              </span>
-            </div>
+            />
             <div>
               <div
                 style={{
