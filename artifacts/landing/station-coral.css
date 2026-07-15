@@ -1,0 +1,12 @@
+/* Station — Coral accent lock (light).
+   Loaded AFTER station-tokens.css to swap the default Clay accent for the
+   Coral signature shown in the Style Guide and landing pages. */
+:root {
+  --accent:        #DD5E54;
+  --accent-hover:  #C64A41;
+  --accent-active: #A93B33;
+  --on-accent:     #FFFFFF;
+  --accent-wash:   #FBEAE8; /* tinted fills, selected rows */
+  --navy-wash:     #E7EAF3;
+  --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+}

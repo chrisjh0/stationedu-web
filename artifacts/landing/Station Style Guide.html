@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Station — Style Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="station-tokens.css" />
+  <style>
+    /* Accent locked to Coral (#DD5E54) — matches the landing page designs.
+       Scoped here so the shared tokens stay clay for the other artifacts. */
+    :root {
+      --accent:        #DD5E54;
+      --accent-hover:  #C64A41;
+      --accent-active: #A93B33;
+      --on-accent:     #FFFFFF;
+    }
+    [data-theme="dark"] {
+      --accent:        #E97A6F;
+      --accent-hover:  #C64A41;
+      --accent-active: #A93B33;
+      --on-accent:     #240B08;
+    }
+
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+
+    /* top bar */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: saturate(1.4) blur(12px);
+      background: color-mix(in oklab, var(--bg) 82%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .brandmark { display: flex; align-items: center; gap: 11px; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--heading); letter-spacing: -.02em; }
+    .logo-chip {
+      width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+      background: var(--primary); color: #fff; position: relative; overflow: hidden;
+    }
+    .logo-chip::after { content:""; position:absolute; inset:0; background: var(--accent); clip-path: polygon(100% 0,100% 100%,52% 100%); opacity:.92; }
+    .logo-chip .ms { font-size: 18px; position: relative; z-index: 1; }
+    .theme-btn { display:inline-flex; align-items:center; gap:8px; }
+
+    /* sections */
+    section { padding: 72px 0; border-bottom: 1px solid var(--border); }
+    section:last-of-type { border-bottom: 0; }
+    .sec-head { margin-bottom: 36px; max-width: 640px; }
+    .sec-head .t-overline { display:block; margin-bottom: 14px; color: var(--accent); }
+    .sec-head p { color: var(--text-2); margin-top: 12px; }
+
+    .grid { display: grid; gap: 18px; }
+    .cols-2 { grid-template-columns: repeat(2,1fr); }
+    .cols-3 { grid-template-columns: repeat(3,1fr); }
+    .cols-4 { grid-template-columns: repeat(4,1fr); }
+    @media (max-width: 820px){ .cols-2,.cols-3,.cols-4 { grid-template-columns: 1fr 1fr; } .wrap{padding:0 20px;} }
+    @media (max-width: 560px){ .cols-2,.cols-3,.cols-4 { grid-template-columns: 1fr; } }
+
+    /* hero color blocks */
+    .hero-colors { display:grid; grid-template-columns: 1.3fr 1fr; gap:18px; margin-top: 8px; }
+    @media (max-width: 720px){ .hero-colors{ grid-template-columns:1fr; } }
+    .hero-swatch { border-radius: var(--r-xl); padding: 26px; min-height: 200px; display:flex; flex-direction:column; justify-content:flex-end; box-shadow: var(--sh); }
+    .hero-swatch .nm { font-family: var(--font-display); font-weight:700; font-size: 24px; letter-spacing:-.02em; }
+    .hero-swatch .meta { font-family: var(--font-mono); font-size: 12.5px; margin-top: 4px; opacity:.82; }
+    .hero-swatch .role { font-size: 13px; margin-top: 14px; opacity:.86; max-width: 34ch; line-height:1.5; }
+
+    /* color scale rows */
+    .ramp { display:grid; grid-template-columns: repeat(8,1fr); border-radius: var(--r-md); overflow:hidden; box-shadow: var(--sh-sm); border:1px solid var(--border); }
+    .ramp .stop { height: 64px; display:flex; align-items:flex-end; padding:6px 8px; }
+    .ramp .stop span { font-family: var(--font-mono); font-size: 9.5px; }
+    @media (max-width:560px){ .ramp{ grid-template-columns:repeat(4,1fr);} }
+
+    .swatch-card { border-radius: var(--r-md); overflow:hidden; border:1px solid var(--border); box-shadow: var(--sh-sm); background:var(--surface); }
+    .swatch-card .chip { height: 84px; }
+    .swatch-card .body { padding: 12px 13px; }
+    .swatch-card .body .nm { font-weight:600; font-size:14px; }
+    .swatch-card .body .hex { font-family:var(--font-mono); font-size:11.5px; color:var(--text-3); margin-top:2px; }
+    .swatch-card .body .use { font-size:12px; color:var(--text-2); margin-top:6px; }
+
+    /* accent try-on */
+    .tryon { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:18px; border-radius:var(--r-lg); background:var(--surface-2); border:1px solid var(--border); }
+    .accent-swatch { width:40px; height:40px; border-radius:var(--r-sm); cursor:pointer; border:2px solid transparent; box-shadow: var(--sh-sm); transition: transform .12s ease; }
+    .accent-swatch:hover { transform: translateY(-2px); }
+    .accent-swatch.is-active { border-color: var(--text); outline: 2px solid var(--surface-2); }
+
+    /* type specimens */
+    .specimen { padding:22px 0; border-bottom:1px dashed var(--border); }
+    .specimen:last-child{ border-bottom:0; }
+    .specimen .lbl { font-family:var(--font-mono); font-size:11px; color:var(--text-3); margin-bottom:10px; letter-spacing:.06em; }
+
+    /* radius + shadow demos */
+    .demo-box { background:var(--surface); border:1px solid var(--border); display:grid; place-items:center; height:86px; font-family:var(--font-mono); font-size:11.5px; color:var(--text-3); }
+    .sh-box { background:var(--surface); border-radius:var(--r-lg); height:96px; display:grid; place-items:center; font-family:var(--font-mono); font-size:11.5px; color:var(--text-3); }
+
+    /* club card */
+    .club-photo { height: 132px; background:
+        repeating-linear-gradient(135deg, color-mix(in oklab,var(--cat-stem) 18%, var(--surface)) 0 11px, color-mix(in oklab,var(--cat-stem) 8%, var(--surface)) 11px 22px);
+        display:grid; place-items:center; }
+    .club-photo .ph { font-family:var(--font-mono); font-size:11px; color: color-mix(in oklab,var(--cat-stem) 60%, var(--text)); }
+
+    /* nav pill */
+    .pill-nav { display:inline-flex; align-items:center; gap:4px; padding:7px; border-radius:var(--r-pill); background:var(--surface); border:1px solid var(--border); box-shadow:var(--sh); }
+    .pill-nav a { display:inline-flex; align-items:center; gap:7px; padding:9px 15px; border-radius:var(--r-pill); font-size:13.5px; font-weight:600; color:var(--text-2); text-decoration:none; }
+    .pill-nav a.active { background:var(--primary); color:#fff; }
+    .pill-nav a .ms { font-size:18px; }
+
+    .stack { display:flex; flex-direction:column; gap:14px; }
+    .row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:24px; box-shadow:var(--sh-sm); }
+    .note { font-size:13px; color:var(--text-2); }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brandmark">
+        <span class="logo-chip"><span class="ms">hub</span></span>
+        Station
+        <span class="t-overline" style="margin-left:6px;">Style Guide</span>
+      </div>
+      <button class="btn btn-secondary theme-btn" onclick="toggleTheme()">
+        <span class="ms" data-theme-icon>light_mode</span>
+        <span data-theme-label>Light</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- OVERVIEW -->
+  <section style="padding-top:64px;">
+    <div class="wrap">
+      <span class="t-overline" style="color:var(--accent);">Station · Visual Language v1</span>
+      <h1 class="t-display" style="margin:16px 0 18px; max-width:18ch;">A campus that finally feels like one place.</h1>
+      <p class="t-body-lg" style="color:var(--text-2); max-width:60ch;">
+        Station moves away from the single corporate blue toward a grounded <strong style="color:var(--text);">Ink&nbsp;Navy</strong> anchor and a warm <strong style="color:var(--text);">Coral</strong> signature — supported by a muted, color-coded palette so every club, sport, and society has a place to live. Clean and modern, but unmistakably Station.
+      </p>
+
+      <div class="hero-colors">
+        <div class="hero-swatch" style="background:var(--primary); color:#fff;">
+          <div class="nm">Ink Navy</div>
+          <div class="meta">--primary · #232E54</div>
+          <div class="role">Primary brand & UI anchor. Buttons, nav, headings, structure. Reads as a near-black with depth — not "another SaaS blue."</div>
+        </div>
+        <div class="hero-swatch" style="background:var(--accent); color:var(--on-accent);">
+          <div class="nm">Coral</div>
+          <div class="meta">--accent · <span data-accent-name>Coral</span></div>
+          <div class="role">The warm signature. Primary CTAs, active states, highlights, focus rings.</div>
+        </div>
+      </div>
+
+      <div class="grid cols-3" style="margin-top:34px;">
+        <div class="panel">
+          <span class="ms" style="font-size:24px;color:var(--accent);">interests</span>
+          <h4 class="t-h4" style="margin:12px 0 6px;">Warm meets cool</h4>
+          <p class="note">Cool slate neutrals carry the UI; warm Coral carries the energy. The tension is the personality.</p>
+        </div>
+        <div class="panel">
+          <span class="ms" style="font-size:24px;color:var(--accent);">palette</span>
+          <h4 class="t-h4" style="margin:12px 0 6px;">Color with a job</h4>
+          <p class="note">Seven muted category hues turn a wall of clubs into something scannable — color as wayfinding, not decoration.</p>
+        </div>
+        <div class="panel">
+          <span class="ms" style="font-size:24px;color:var(--accent);">dark_mode</span>
+          <h4 class="t-h4" style="margin:12px 0 6px;">Built for both</h4>
+          <p class="note">Every token has a real dark-mode value. Try the toggle, top-right — nothing is faked.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLOR -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="t-overline">01 — Color</span>
+        <h2 class="t-h2">A palette that does more than fill space</h2>
+        <p>Two brand colors, a cool neutral spine, seven category hues, and four status colors. That's the whole system — restrained on purpose so the category colors stay meaningful.</p>
+      </div>
+
+      <!-- Live accent try-on -->
+      <h4 class="t-h4" style="margin-bottom:14px;">Dial in the warm accent</h4>
+      <p class="note" style="margin-bottom:14px;max-width:60ch;">You wanted the palette <em>just right</em> — tap a swatch to retheme the whole page live and find the Coral you like. We'll lock your pick in.</p>
+      <div class="tryon" style="margin-bottom:44px;">
+        <div class="accent-swatch" data-accent-swatch style="background:#CF6A45;" onclick="setAccent('clay', this)" title="Clay"></div>
+        <div class="accent-swatch" data-accent-swatch style="background:#B85C38;" onclick="setAccent('rust', this)" title="Rust"></div>
+        <div class="accent-swatch" data-accent-swatch style="background:#C98A3D;" onclick="setAccent('marigold', this)" title="Marigold"></div>
+        <div class="accent-swatch" data-accent-swatch style="background:#D08A2E;" onclick="setAccent('amber', this)" title="Amber"></div>
+        <div class="accent-swatch is-active" data-accent-swatch style="background:#DD5E54;" onclick="setAccent('coral', this)" title="Coral"></div>
+        <span class="note" style="margin-left:6px;">Current: <strong style="color:var(--text);" data-accent-name>Coral</strong></span>
+      </div>
+
+      <!-- Brand swatch cards -->
+      <h4 class="t-h4" style="margin-bottom:14px;">Brand</h4>
+      <div class="grid cols-4" style="margin-bottom:40px;">
+        <div class="swatch-card"><div class="chip" style="background:#232E54;"></div><div class="body"><div class="nm">Ink Navy</div><div class="hex">#232E54</div><div class="use">Primary · buttons, nav, headings</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--accent);"></div><div class="body"><div class="nm">Coral</div><div class="hex" data-accent-name>Coral</div><div class="use">Accent · CTAs, active, focus</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:#1B2342;"></div><div class="body"><div class="nm">Navy Hover</div><div class="hex">#1B2342</div><div class="use">Pressed / hover depth</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:#E7EAF3;"></div><div class="body"><div class="nm">Navy Wash</div><div class="hex">#E7EAF3</div><div class="use">Tinted fills, selected rows</div></div></div>
+      </div>
+
+      <!-- Neutral ramp -->
+      <h4 class="t-h4" style="margin-bottom:14px;">Cool slate neutrals</h4>
+      <div class="ramp" style="margin-bottom:40px;">
+        <div class="stop" style="background:#FFFFFF;"><span style="color:#181D29;">#FFFFFF</span></div>
+        <div class="stop" style="background:#F5F6F9;"><span style="color:#181D29;">#F5F6F9</span></div>
+        <div class="stop" style="background:#EEF1F5;"><span style="color:#181D29;">#EEF1F5</span></div>
+        <div class="stop" style="background:#E3E7EE;"><span style="color:#181D29;">#E3E7EE</span></div>
+        <div class="stop" style="background:#CCD3DF;"><span style="color:#181D29;">#CCD3DF</span></div>
+        <div class="stop" style="background:#79839A;"><span style="color:#fff;">#79839A</span></div>
+        <div class="stop" style="background:#4C5567;"><span style="color:#fff;">#4C5567</span></div>
+        <div class="stop" style="background:#181D29;"><span style="color:#fff;">#181D29</span></div>
+      </div>
+
+      <!-- Category palette -->
+      <h4 class="t-h4" style="margin-bottom:6px;">Club categories</h4>
+      <p class="note" style="margin-bottom:16px;max-width:58ch;">Muted, equal-weight hues so no category shouts over another. Used for tags, calendar dots, and club accents.</p>
+      <div class="grid cols-4" style="margin-bottom:24px;">
+        <div class="swatch-card"><div class="chip" style="background:var(--cat-arts);"></div><div class="body"><div class="nm">Arts &amp; Performance</div><div class="hex">--cat-arts</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--cat-athletics);"></div><div class="body"><div class="nm">Athletics &amp; Rec</div><div class="hex">--cat-athletics</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--cat-stem);"></div><div class="body"><div class="nm">STEM &amp; Tech</div><div class="hex">--cat-stem</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--cat-academic);"></div><div class="body"><div class="nm">Academic &amp; Honors</div><div class="hex">--cat-academic</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--cat-environment);"></div><div class="body"><div class="nm">Environment</div><div class="hex">--cat-environment</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--cat-culture);"></div><div class="body"><div class="nm">Culture &amp; Affinity</div><div class="hex">--cat-culture</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--cat-service);"></div><div class="body"><div class="nm">Service &amp; Advocacy</div><div class="hex">--cat-service</div></div></div>
+        <div class="swatch-card" style="display:grid;place-items:center;background:var(--surface-2);border-style:dashed;"><div class="body" style="text-align:center;"><div class="nm" style="color:var(--text-2);">+ room to grow</div><div class="use">extend on the same hue ring</div></div></div>
+      </div>
+
+      <!-- as tags -->
+      <div class="row" style="margin-bottom:44px;">
+        <span class="tag" style="--c:var(--cat-arts);"><span class="dot"></span>Theater</span>
+        <span class="tag" style="--c:var(--cat-athletics);"><span class="dot"></span>Varsity Soccer</span>
+        <span class="tag" style="--c:var(--cat-stem);"><span class="dot"></span>Robotics</span>
+        <span class="tag" style="--c:var(--cat-academic);"><span class="dot"></span>Model UN</span>
+        <span class="tag" style="--c:var(--cat-environment);"><span class="dot"></span>Garden Club</span>
+        <span class="tag" style="--c:var(--cat-culture);"><span class="dot"></span>BSU</span>
+        <span class="tag" style="--c:var(--cat-service);"><span class="dot"></span>Key Club</span>
+      </div>
+
+      <!-- semantic -->
+      <h4 class="t-h4" style="margin-bottom:14px;">Status</h4>
+      <div class="grid cols-4">
+        <div class="swatch-card"><div class="chip" style="background:var(--success);"></div><div class="body"><div class="nm">Success</div><div class="hex">RSVP'd · active</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--warning);"></div><div class="body"><div class="nm">Warning</div><div class="hex">Deadlines · low seats</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--danger);"></div><div class="body"><div class="nm">Danger</div><div class="hex">Cancelled · errors</div></div></div>
+        <div class="swatch-card"><div class="chip" style="background:var(--info);"></div><div class="body"><div class="nm">Info</div><div class="hex">Notices · tips</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TYPOGRAPHY -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="t-overline">02 — Typography</span>
+        <h2 class="t-h2">Schibsted Grotesk &amp; Hanken Grotesk</h2>
+        <p>A characterful geometric grotesk for display, a calm humanist grotesk for everything you read. Distinctive headlines, effortless body — and a mono for the small structural stuff like times and dates.</p>
+      </div>
+
+      <div class="grid cols-2" style="margin-bottom:36px;">
+        <div class="panel">
+          <div class="t-overline" style="margin-bottom:10px;">Display &amp; headings</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:44px;line-height:1;letter-spacing:-.025em;color:var(--heading);">Schibsted<br/>Grotesk</div>
+          <p class="note" style="margin-top:14px;">Weights 500 · 600 · 700 · 800. Tight tracking on large sizes.</p>
+        </div>
+        <div class="panel">
+          <div class="t-overline" style="margin-bottom:10px;">Body &amp; UI</div>
+          <div style="font-family:var(--font-body);font-weight:500;font-size:44px;line-height:1;letter-spacing:-.01em;color:var(--heading);">Hanken<br/>Grotesk</div>
+          <p class="note" style="margin-top:14px;">Weights 400 · 500 · 600 · 700. Optimized for screen reading.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="specimen"><div class="lbl">Display · Schibsted 700 · 52/54</div><div class="t-display">Find your people.</div></div>
+        <div class="specimen"><div class="lbl">H1 · Schibsted 700 · 36/40</div><div class="t-h1">This week at Lincoln High</div></div>
+        <div class="specimen"><div class="lbl">H2 · Schibsted 600 · 27/32</div><div class="t-h2">Upcoming meetings &amp; events</div></div>
+        <div class="specimen"><div class="lbl">H3 · Schibsted 600 · 21/27</div><div class="t-h3">Robotics Club · Build Night</div></div>
+        <div class="specimen"><div class="lbl">Body · Hanken 400 · 15/24</div><p class="t-body" style="max-width:62ch;">Station keeps every club, meeting time, and location in one shared calendar. Students discover clubs, RSVP in a tap, join the group chat, and get reminders so nothing slips through the cracks all year.</p></div>
+        <div class="specimen"><div class="lbl">Small / meta · Hanken 500 · 13/20</div><p class="t-sm" style="color:var(--text-2);">Updated 2 hours ago · 24 members · Room B-114</p></div>
+        <div class="specimen"><div class="lbl">Overline / mono · JetBrains 500 · 11.5</div><span class="t-overline">Tuesdays · 3:30 PM · Library</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHAPE & ELEVATION -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="t-overline">03 — Shape &amp; Elevation</span>
+        <h2 class="t-h2">Softened, not bubbly</h2>
+        <p>We pulled the corners back from 16px to a calmer ~10px — modern and friendly without feeling like a toy. Shadows are cool-tinted and quiet; depth comes from layering surfaces, not heavy drop shadows.</p>
+      </div>
+
+      <h4 class="t-h4" style="margin-bottom:14px;">Radius scale</h4>
+      <div class="grid cols-4" style="margin-bottom:40px;">
+        <div class="demo-box" style="border-radius:var(--r-sm);">sm · 6px</div>
+        <div class="demo-box" style="border-radius:var(--r-md);">md · 10px</div>
+        <div class="demo-box" style="border-radius:var(--r-lg);">lg · 14px</div>
+        <div class="demo-box" style="border-radius:var(--r-xl);">xl · 20px</div>
+      </div>
+
+      <h4 class="t-h4" style="margin-bottom:14px;">Elevation</h4>
+      <div class="grid cols-4" style="background:var(--bg);">
+        <div class="sh-box" style="box-shadow:var(--sh-sm);">sm</div>
+        <div class="sh-box" style="box-shadow:var(--sh);">base</div>
+        <div class="sh-box" style="box-shadow:var(--sh-md);">md</div>
+        <div class="sh-box" style="box-shadow:var(--sh-lg);">lg</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="t-overline">04 — In context</span>
+        <h2 class="t-h2">The system, assembled</h2>
+        <p>The same tokens, applied to real Station surfaces. Material Symbols stay as the icon set. Toggle dark mode to pressure-test every piece.</p>
+      </div>
+
+      <!-- buttons + inputs -->
+      <div class="grid cols-2" style="margin-bottom:22px;">
+        <div class="panel">
+          <div class="t-overline" style="margin-bottom:16px;">Buttons</div>
+          <div class="row" style="margin-bottom:12px;">
+            <button class="btn btn-accent"><span class="ms">add</span>Join club</button>
+            <button class="btn btn-primary">RSVP</button>
+            <button class="btn btn-secondary">Message</button>
+          </div>
+          <div class="row">
+            <button class="btn btn-outline">Edit</button>
+            <button class="btn btn-ghost"><span class="ms">share</span>Share</button>
+            <button class="btn btn-accent btn-sm">Small</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="t-overline" style="margin-bottom:16px;">Inputs</div>
+          <div class="stack">
+            <input class="input" placeholder="Search 240 clubs…" />
+            <div class="row">
+              <span class="tag" style="--c:var(--cat-stem);"><span class="dot"></span>STEM</span>
+              <span class="tag" style="--c:var(--cat-arts);"><span class="dot"></span>Arts</span>
+              <span class="tag" style="--c:var(--success);">● Open now</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- nav pill -->
+      <div class="panel" style="margin-bottom:22px; display:flex; justify-content:center;">
+        <nav class="pill-nav">
+          <a class="active" href="#"><span class="ms">calendar_month</span>Calendar</a>
+          <a href="#"><span class="ms">groups</span>My Clubs</a>
+          <a href="#"><span class="ms">explore</span>Directory</a>
+          <a href="#"><span class="ms">workspace_premium</span>Leadership</a>
+        </nav>
+      </div>
+
+      <!-- club cards -->
+      <div class="grid cols-3">
+        <!-- card 1 -->
+        <div class="card" style="overflow:hidden;">
+          <div class="club-photo"><span class="ph">[ club photo ]</span></div>
+          <div style="padding:16px;">
+            <div class="row" style="justify-content:space-between;align-items:flex-start;">
+              <span class="tag" style="--c:var(--cat-stem);"><span class="dot"></span>STEM &amp; Tech</span>
+              <span class="ms" style="color:var(--text-3);font-size:20px;">bookmark</span>
+            </div>
+            <h3 class="t-h3" style="font-size:18px;margin:12px 0 4px;">Robotics Club</h3>
+            <p class="t-sm" style="color:var(--text-2);margin-bottom:14px;">Build competition robots &amp; learn to code.</p>
+            <div class="t-overline" style="display:flex;gap:14px;margin-bottom:14px;">
+              <span><span class="ms" style="font-size:14px;color:var(--accent);">schedule</span> Tue 3:30</span>
+              <span><span class="ms" style="font-size:14px;color:var(--accent);">place</span> B-114</span>
+            </div>
+            <button class="btn btn-accent" style="width:100%;justify-content:center;"><span class="ms">add</span>Join</button>
+          </div>
+        </div>
+        <!-- card 2 -->
+        <div class="card" style="overflow:hidden;">
+          <div class="club-photo" style="background:repeating-linear-gradient(135deg, color-mix(in oklab,var(--cat-arts) 18%, var(--surface)) 0 11px, color-mix(in oklab,var(--cat-arts) 8%, var(--surface)) 11px 22px);"><span class="ph" style="color:color-mix(in oklab,var(--cat-arts) 60%, var(--text));">[ club photo ]</span></div>
+          <div style="padding:16px;">
+            <div class="row" style="justify-content:space-between;align-items:flex-start;">
+              <span class="tag" style="--c:var(--cat-arts);"><span class="dot"></span>Arts</span>
+              <span class="ms" style="color:var(--accent);font-size:20px;">bookmark</span>
+            </div>
+            <h3 class="t-h3" style="font-size:18px;margin:12px 0 4px;">Drama &amp; Theater</h3>
+            <p class="t-sm" style="color:var(--text-2);margin-bottom:14px;">Spring musical auditions are open.</p>
+            <div class="t-overline" style="display:flex;gap:14px;margin-bottom:14px;">
+              <span><span class="ms" style="font-size:14px;color:var(--accent);">schedule</span> Wed 4:00</span>
+              <span><span class="ms" style="font-size:14px;color:var(--accent);">place</span> Theater</span>
+            </div>
+            <button class="btn btn-secondary" style="width:100%;justify-content:center;"><span class="ms">check</span>Joined</button>
+          </div>
+        </div>
+        <!-- card 3 : event -->
+        <div class="card" style="padding:16px; display:flex; flex-direction:column; gap:12px;">
+          <div class="t-overline">Next up · today</div>
+          <div style="display:flex; gap:12px;">
+            <div style="width:52px;text-align:center;background:var(--accent);color:var(--on-accent);border-radius:var(--r-md);padding:8px 0;">
+              <div class="mono" style="font-size:11px;opacity:.85;">OCT</div>
+              <div style="font-family:var(--font-display);font-weight:700;font-size:22px;line-height:1;">14</div>
+            </div>
+            <div>
+              <h4 class="t-h4">Model UN — Mock Debate</h4>
+              <p class="t-sm" style="color:var(--text-2);">3:30 PM · Room 204</p>
+            </div>
+          </div>
+          <div class="row" style="gap:8px;">
+            <span class="tag" style="--c:var(--cat-academic);"><span class="dot"></span>Academic</span>
+            <span class="tag" style="--c:var(--warning);">3 seats left</span>
+          </div>
+          <div class="row" style="gap:8px;">
+            <button class="btn btn-accent" style="flex:1;justify-content:center;">RSVP</button>
+            <button class="btn btn-outline"><span class="ms">chat_bubble</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <section style="border-bottom:0;">
+    <div class="wrap">
+      <div class="panel" style="display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center;">
+        <div style="max-width:46ch;">
+          <h3 class="t-h3" style="margin-bottom:8px;">Where to next</h3>
+          <p class="note">This guide lives as design tokens (<span class="mono" style="font-size:12px;">station-tokens.css</span>) ready to map onto your existing Tailwind / shadcn variables. Next we can design the <strong style="color:var(--text);">Station logo</strong> on this palette, then re-skin the live screens.</p>
+        </div>
+        <div class="row">
+          <button class="btn btn-accent"><span class="ms">draw</span>Design the logo</button>
+          <button class="btn btn-secondary"><span class="ms">dashboard</span>Re-skin screens</button>
+        </div>
+      </div>
+      <p class="t-overline" style="text-align:center;margin-top:32px;">Station · Visual Language v1 · Ink Navy &amp; Coral</p>
+    </div>
+  </section>
+
+  <script src="guide.js"></script>
+</body>
+</html>

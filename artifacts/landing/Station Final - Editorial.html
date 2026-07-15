@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-dir="editorial">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Station: One home for student life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="station-tokens.css" />
+<link rel="stylesheet" href="station-final.css" />
+<style>
+  a{ color:var(--accent); }
+  a:hover{ color:var(--accent-hover); }
+  .foot{ padding:34px 0 26px; }
+  .foot-bottom{ margin-top:22px; padding-top:18px; }
+  .foot .about p{ margin:14px 0 0; }
+  /* legible kicker/labels on navy sections */
+  .bg-ink .kick,
+  [data-dir="editorial"] .bg-ink .kick,
+  [data-dir="editorial"] .bg-ink .over{ color:color-mix(in oklab,var(--accent) 62%,#fff); }
+  .bg-ink .kick::before,
+  [data-dir="editorial"] .bg-ink .kick::before,
+  [data-dir="editorial"] .bg-ink .over::before{ background:color-mix(in oklab,var(--accent) 62%,#fff); }
+  .bg-ink .fcard{ border-top-color:rgba(255,255,255,.30); }
+  .bg-ink .fcard h3{ color:#fff; }
+  .bg-ink .fcard p{ color:rgba(255,255,255,.72); }
+  .bg-ink .fcard .ico .ms{ color:color-mix(in oklab,var(--accent) 62%,#fff); }
+  /* before/after diagram: white card, cool-slate "before" panel */
+  .bg-ink .cmp{ background:var(--surface); border-color:var(--border); box-shadow:var(--sh-lg); }
+  .bg-ink .cmp .before{ background:var(--surface-2); border-right-color:var(--border); border-bottom-color:var(--border); }
+  .bg-ink .cmp .after{ background:var(--surface); }
+  .bg-ink .cmp .before .tag{ color:var(--text-3); }
+  .bg-ink .cmp .before li{ color:var(--text-2); }
+  .bg-ink .cmp .before li .ms{ color:var(--text-3); }
+  .bg-ink .cmp .after .tag{ color:var(--accent); }
+  .bg-ink .cmp .after li{ color:var(--heading); }
+  .bg-ink .cmp .after li .ms{ color:var(--success); }
+  /* translucent hero overlays so the main photo shows through */
+  .hero .metric-chip{ background:rgba(255,255,255,.80); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  .hero .mini-shot{ opacity:.9; }
+  .hero .mini-shot .bf-bar{ background:rgba(246,247,250,.75); }
+  .hero .mini-shot image-slot{ opacity:.9; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <svg class="logo" viewBox="168 161.5 473 473" aria-hidden="true"><path class="duo" fill-rule="evenodd" d="M193,461 a131,131 0 1,0 262,0 a131,131 0 1,0 -262,0 Z M354,461 a131,131 0 1,0 262,0 a131,131 0 1,0 -262,0 Z" /><circle class="dot" cx="405" cy="263" r="58.5" /></svg>
+      Station
+    </a>
+    <nav class="nav-links">
+      <a href="#features">Product</a>
+      <a href="#students">For students</a>
+      <a href="#schools">For schools</a>
+      <a href="#story">Our story</a>
+    </nav>
+    <div class="nav-act">
+      <button class="btn btn-outline hide-sm"><span class="ms">login</span>Log in</button>
+      <button class="btn btn-accent"><span class="ms">calendar_month</span>Request a demo</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO: analytics pop -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="reveal">
+        <span class="kick">Station for schools</span>
+        <h1 class="display" style="margin:20px 0 0;">One home for student life, and the proof your campus is thriving.</h1>
+        <p class="lead" style="margin:22px 0 0; max-width:46ch;">Station brings every club, event, meeting, and chat into one place students actually use, then turns that into live engagement data your school can stand behind.</p>
+        <div class="cta-row" style="margin-top:30px;">
+          <button class="btn btn-accent"><span class="ms">calendar_month</span>Request a demo</button>
+        </div>
+      </div>
+
+      <div class="reveal d1 analytics-wrap" style="align-self:center;">
+        <div class="browserframe">
+          <div class="bf-bar"><span class="bf-dot"></span><span class="bf-dot"></span><span class="bf-dot"></span><span class="bf-url">app.stationedu.com/insights</span></div>
+          <image-slot id="final-shot-analytics" shape="rect" fit="cover" src="uploads/Calendar _ Daily.jpeg" style="display:block;width:100%;height:auto;aspect-ratio:3332/2659;background:var(--surface-2);" placeholder="Drop your dashboard / analytics screenshot"></image-slot>
+        </div>
+        <div class="metric-chip" style="left:-24px; top:-22px;">
+          <span class="ms" style="color:var(--success);">trending_up</span>
+          <div><div class="mc-num tnum">+38%</div><div class="mc-lbl">Student Participation</div></div>
+        </div>
+        <div class="browserframe mini-shot">
+          <div class="bf-bar"><span class="bf-dot"></span><span class="bf-dot"></span><span class="bf-dot"></span></div>
+          <image-slot id="final-shot-app" shape="rect" fit="cover" src="uploads/Club Detail-8b496314.jpeg" style="display:block;width:100%;height:auto;aspect-ratio:1758/1203;background:var(--surface-2);" placeholder="2nd shot"></image-slot>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section bg-ink" id="features">
+  <div class="wrap">
+    <span class="kick">Everything in one place</span>
+    <h2 class="h2" style="margin:16px 0 6px; max-width:20ch;">The product students actually open.</h2>
+    <p class="lead" style="max-width:56ch; margin-bottom:40px;">No more group-text chaos or flyers taped to a wall. Because students use it, the data underneath it is real.</p>
+    <div class="fcards">
+      <div class="fcard">
+        <div class="ico"><span class="ms">calendar_month</span></div>
+        <h3>One shared calendar</h3>
+        <p>Every meeting, game, and rehearsal in a single schedule, with the times and rooms students can actually find.</p>
+      </div>
+      <div class="fcard">
+        <div class="ico"><span class="ms">explore</span></div>
+        <h3>Discover every club</h3>
+        <p>A browsable directory of every club and team, sorted by category, so any student can find their people in an afternoon.</p>
+      </div>
+      <div class="fcard">
+        <div class="ico"><span class="ms">notifications_active</span></div>
+        <h3>Reminders that have your back</h3>
+        <p>A nudge before every meeting and deadline, so the thing you signed up for doesn't quietly slip away.</p>
+      </div>
+    </div>
+    <div class="cmp" id="change" style="margin-top:56px;">
+      <div class="col before">
+        <span class="tag">Before Station</span>
+        <ul>
+          <li><span class="ms">close</span>Engagement guessed from hallway buzz and a yearly survey</li>
+          <li><span class="ms">close</span>Club info scattered across group chats, flyers, and sign-up sheets</li>
+          <li><span class="ms">close</span>Advisors chase rosters and attendance by hand</li>
+          <li><span class="ms">close</span>Nothing concrete to show a board or a prospective family</li>
+        </ul>
+      </div>
+      <div class="col after">
+        <span class="tag">With Station</span>
+        <ul>
+          <li><span class="ms">check</span>Live participation data, accurate to the day</li>
+          <li><span class="ms">check</span>One shared home for every club, event, and chat</li>
+          <li><span class="ms">check</span>Rosters and attendance logged automatically</li>
+          <li><span class="ms">check</span>A board- and admissions-ready report, one click away</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR STUDENTS -->
+<section class="section" id="students">
+  <div class="wrap">
+    <div class="adsplit">
+      <div class="reveal">
+        <span class="kick">For students</span>
+        <h2 class="h2" style="margin:16px 0 0; max-width:14ch;">Find your people, in a tap.</h2>
+        <p class="lead" style="margin-top:16px; max-width:42ch;">From robotics to rugby to ranchera band, every club, team, and society lives in one place. Discover them, join in a tap, and never miss a meeting again.</p>
+        <div class="adlist">
+          <div class="it"><span class="ms" style="color:var(--accent);">explore</span><div><b>See everything on campus</b><p>One directory of every group, searchable, not taped to a hallway wall.</p></div></div>
+          <div class="it"><span class="ms" style="color:var(--accent);">add_circle</span><div><b>Join in a single tap</b><p>RSVP, get the chat, and land on the calendar: no forms, no fuss.</p></div></div>
+          <div class="it"><span class="ms" style="color:var(--accent);">group</span><div><b>Belong somewhere</b><p>A place for every student to find the people they click with.</p></div></div>
+        </div>
+      </div>
+      <div class="reveal d1" style="align-self:center;">
+        <div class="browserframe">
+          <div class="bf-bar"><span class="bf-dot"></span><span class="bf-dot"></span><span class="bf-dot"></span><span class="bf-url">app.stationedu.com/clubs</span></div>
+          <image-slot id="final-shot-students" shape="rect" fit="cover" src="uploads/Directory.jpeg" style="display:block;width:100%;height:auto;aspect-ratio:3339/2626;background:var(--surface-2);" placeholder="Drop a student app / club directory screenshot"></image-slot>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR SCHOOLS + REPORT (centerpiece) -->
+<section class="section bg-ink for-schools" id="schools">
+  <div class="wrap">
+    <div class="adsplit">
+      <div class="reveal">
+        <span class="kick" style="color:color-mix(in oklab,var(--accent) 55%,#fff);">For schools &amp; administrators</span>
+        <h2 class="h2" style="margin:16px 0 0; max-width:15ch;">When students love it, schools win.</h2>
+        <p class="lead" style="margin-top:16px; max-width:42ch;">Because students use Station, administration finally gets an accurate, real-time picture of engagement, and the report to prove it.</p>
+        <div class="adlist">
+          <div class="it"><span class="ms" style="color:color-mix(in oklab,var(--accent) 62%,#fff);">insights</span><div><b style="color:#fff;">Live engagement analytics</b><p>Participation by grade, club, and category: no manual surveys.</p></div></div>
+          <div class="it"><span class="ms" style="color:color-mix(in oklab,var(--accent) 62%,#fff);">description</span><div><b style="color:#fff;">Board- &amp; admissions-ready reports</b><p>Export a clean summary of campus life in one click.</p></div></div>
+          <div class="it"><span class="ms" style="color:color-mix(in oklab,var(--accent) 62%,#fff);">school</span><div><b style="color:#fff;">A story for prospective families</b><p>Show a campus that's measurably alive.</p></div></div>
+        </div>
+      </div>
+
+      <div class="reveal d1">
+        <div class="browserframe">
+          <div class="bf-bar"><span class="bf-dot"></span><span class="bf-dot"></span><span class="bf-dot"></span><span class="bf-url">app.stationedu.com/insights</span></div>
+          <image-slot id="final-shot-schools" shape="rect" fit="cover" src="uploads/Admin _ Analytics.jpeg" style="display:block;width:100%;height:auto;aspect-ratio:3329/3879;background:var(--surface-2);" placeholder="Drop a dashboard / engagement report screenshot"></image-slot>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ORIGIN -->
+<section class="section bg-soft" id="story">
+  <div class="wrap">
+    <div class="origin" style="grid-template-columns:1fr;">
+      <div class="ob">
+        <p>Discovering what we love to do: that is what school is all about. I found it hard to fully engage in student life and student-led clubs at my school; I built Station to help ensure every student has the opportunity to <span class="hl">discover and pursue their passions</span>.</p>
+        <div class="sig"><image-slot id="founder-photo" shape="circle" style="width:52px;height:52px;flex:0 0 auto;background:transparent;border:0;" placeholder="Photo"></image-slot><div><div class="nm">Christopher Ho</div><div class="rl">Founder</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="section bg-ink">
+  <div class="wrap">
+    <div class="cta-wrap">
+      <span class="kick" style="color:color-mix(in oklab,var(--accent) 55%,#fff);">Bring Station to your school</span>
+      <h2 class="display" style="color:#fff; font-size:clamp(32px,4.4vw,54px); max-width:20ch; margin:16px auto 0;">Give every student a place to belong, and every school the proof.</h2>
+      <p class="lead" style="color:rgba(255,255,255,.8); margin:18px auto 0; max-width:52ch;">Book a 20-minute walkthrough. We'll show you the student experience and the dashboard your board will love.</p>
+      <div class="cta-row" style="justify-content:center; margin-top:30px;">
+        <button class="btn btn-on-ink"><span class="ms">calendar_month</span>Request a demo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid" style="grid-template-columns:1fr;">
+      <div class="about" style="display:flex; align-items:center; gap:26px; flex-wrap:wrap;">
+        <a class="brand" href="#top" style="flex:0 0 auto;">
+          <svg class="logo" viewBox="168 161.5 473 473" aria-hidden="true"><path class="duo" fill-rule="evenodd" d="M193,461 a131,131 0 1,0 262,0 a131,131 0 1,0 -262,0 Z M354,461 a131,131 0 1,0 262,0 a131,131 0 1,0 -262,0 Z" /><circle class="dot" cx="405" cy="263" r="58.5" /></svg>
+          Station
+        </a>
+        <p style="margin:0; flex:1; min-width:240px; max-width:none;">One place for every club, team, and society, and the engagement data schools have never had.</p>
+      </div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 Station Education, Inc.</span><span>Privacy · Terms · Accessibility</span></div>
+  </div>
+</footer>
+
+<script src="image-slot.js"></script>
+<script>
+  // reveal on scroll
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold:.12 });
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+</script>
+</body>
+</html>

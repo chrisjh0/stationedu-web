@@ -1,0 +1,225 @@
+/* ============================================================
+   STATION — Design Tokens
+   Ink Navy + Clay · cool slate neutrals · slightly rounded
+   Light + real Dark mode. Tints auto-derive via color-mix.
+   ============================================================ */
+
+:root {
+  /* ---- Surfaces & neutrals (cool slate) ---- */
+  --bg:            #F5F6F9;
+  --surface:       #FFFFFF;
+  --surface-2:     #EEF1F5;
+  --surface-3:     #E4E8EF;
+  --border:        #E3E7EE;
+  --border-strong: #CCD3DF;
+
+  --text:    #181D29; /* body */
+  --text-2:  #4C5567; /* secondary */
+  --text-3:  #79839A; /* muted / meta */
+  --heading: #121726;
+
+  /* ---- Brand: Ink Navy (primary) ---- */
+  --primary:        #232E54;
+  --primary-hover:  #1B2342;
+  --primary-active: #141B33;
+  --on-primary:     #FFFFFF;
+
+  /* ---- Accent: Clay (warm pop) ---- */
+  --accent:        #CF6A45;
+  --accent-hover:  #B95535;
+  --accent-active: #9F4730;
+  --on-accent:     #FFFFFF;
+
+  /* ---- Semantic ---- */
+  --success: #2F7D5B;
+  --warning: #C0892B;
+  --danger:  #C0473B;
+  --info:    #3F6FB0;
+
+  /* ---- Club category palette (muted, harmonized) ---- */
+  --cat-arts:        #C56A4A; /* Arts & Performance   */
+  --cat-athletics:   #BB8E33; /* Athletics & Rec      */
+  --cat-environment: #6F9266; /* Environment & Outdoor*/
+  --cat-stem:        #3C8A84; /* STEM & Technology    */
+  --cat-academic:    #5A7BA6; /* Academic & Honors    */
+  --cat-culture:     #8A5E8C; /* Culture & Affinity   */
+  --cat-service:     #BE6385; /* Service & Advocacy   */
+
+  /* ---- Type ---- */
+  --font-display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ---- Radius (slightly rounded) ---- */
+  --r-xs:  4px;
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  14px;
+  --r-xl:  20px;
+  --r-pill: 999px;
+
+  /* ---- Elevation (cool-tinted, soft) ---- */
+  --sh-sm: 0 1px 2px rgba(18,23,38,.05), 0 1px 3px rgba(18,23,38,.05);
+  --sh:    0 2px 4px rgba(18,23,38,.04), 0 6px 16px rgba(18,23,38,.07);
+  --sh-md: 0 4px 10px rgba(18,23,38,.05), 0 14px 32px rgba(18,23,38,.09);
+  --sh-lg: 0 10px 26px rgba(18,23,38,.09), 0 28px 56px rgba(18,23,38,.12);
+
+  --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+[data-theme="dark"] {
+  --bg:            #0F131C;
+  --surface:       #161B27;
+  --surface-2:     #1D2331;
+  --surface-3:     #262E40;
+  --border:        #2A3243;
+  --border-strong: #3B4659;
+
+  --text:    #E7EAF1;
+  --text-2:  #AEB6C7;
+  --text-3:  #7E889C;
+  --heading: #F4F6FB;
+
+  --primary:        #6175B5; /* lifted periwinkle for contrast on dark */
+  --primary-hover:  #7488C6;
+  --primary-active: #8A9BD2;
+  --on-primary:     #FFFFFF;
+
+  --accent:        #DB7B57;
+  --accent-hover:  #E68E6C;
+  --accent-active: #EFA081;
+  --on-accent:     #1E1009;
+
+  --success: #4FA47C;
+  --warning: #D6A33F;
+  --danger:  #D86251;
+  --info:    #6E97D4;
+
+  --cat-arts:        #D7805F;
+  --cat-athletics:   #CBA04A;
+  --cat-environment: #88AB7C;
+  --cat-stem:        #56A39C;
+  --cat-academic:    #7B97C0;
+  --cat-culture:     #A878AA;
+  --cat-service:     #D27E9D;
+
+  --sh-sm: 0 1px 2px rgba(0,0,0,.30), 0 1px 3px rgba(0,0,0,.34);
+  --sh:    0 2px 6px rgba(0,0,0,.34), 0 8px 20px rgba(0,0,0,.40);
+  --sh-md: 0 6px 14px rgba(0,0,0,.40), 0 16px 36px rgba(0,0,0,.46);
+  --sh-lg: 0 12px 30px rgba(0,0,0,.46), 0 30px 60px rgba(0,0,0,.55);
+}
+
+/* ============================================================
+   Tint helpers — one formula adapts to light & dark.
+   ============================================================ */
+.tint        { background: color-mix(in oklab, var(--c) 14%, var(--surface)); }
+.tint-strong { background: color-mix(in oklab, var(--c) 22%, var(--surface)); }
+
+/* ============================================================
+   Base
+   ============================================================ */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  font-feature-settings: 'ss01';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background .35s ease, color .35s ease;
+}
+h1,h2,h3,h4,h5 { font-family: var(--font-display); color: var(--heading); margin: 0; letter-spacing: -.01em; }
+p { margin: 0; }
+a { color: var(--primary); }
+.mono { font-family: var(--font-mono); }
+
+/* ============================================================
+   Type scale
+   ============================================================ */
+.t-display { font-size: 52px; line-height: 1.04; font-weight: 700; letter-spacing: -.025em; }
+.t-h1 { font-size: 36px; line-height: 1.12; font-weight: 700; letter-spacing: -.02em; }
+.t-h2 { font-size: 27px; line-height: 1.2;  font-weight: 600; letter-spacing: -.015em; }
+.t-h3 { font-size: 21px; line-height: 1.3;  font-weight: 600; }
+.t-h4 { font-size: 17px; line-height: 1.4;  font-weight: 600; }
+.t-body-lg { font-size: 17px; line-height: 1.65; font-weight: 400; }
+.t-body { font-size: 15px; line-height: 1.6; font-weight: 400; }
+.t-sm { font-size: 13px; line-height: 1.5; font-weight: 500; }
+.t-overline {
+  font-family: var(--font-mono);
+  font-size: 11.5px; font-weight: 500; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--text-3);
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn {
+  font-family: var(--font-body);
+  font-size: 14px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: var(--r-md);
+  border: 1px solid transparent; cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .08s ease, box-shadow .16s ease;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(1px); }
+.btn .ms { font-size: 18px; }
+.btn-primary   { background: var(--primary); color: var(--on-primary); }
+.btn-primary:hover   { background: var(--primary-hover); }
+.btn-accent    { background: var(--accent); color: var(--on-accent); box-shadow: var(--sh-sm); }
+.btn-accent:hover    { background: var(--accent-hover); }
+.btn-secondary { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { background: var(--surface-3); }
+.btn-outline   { background: transparent; color: var(--primary); border-color: var(--border-strong); }
+[data-theme="dark"] .btn-outline { color: var(--text); }
+.btn-outline:hover   { background: var(--surface-2); }
+.btn-ghost     { background: transparent; color: var(--text-2); }
+.btn-ghost:hover     { background: var(--surface-2); color: var(--text); }
+.btn-sm { padding: 7px 13px; font-size: 13px; border-radius: var(--r-sm); }
+
+/* ============================================================
+   Tags / badges (category-coded)
+   ============================================================ */
+.tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 600; line-height: 1;
+  padding: 6px 11px; border-radius: var(--r-pill);
+  background: color-mix(in oklab, var(--c) 14%, var(--surface));
+  color: color-mix(in oklab, var(--c) 70%, var(--text));
+  border: 1px solid color-mix(in oklab, var(--c) 26%, transparent);
+}
+.tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+
+/* ============================================================
+   Cards
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-sm);
+}
+
+/* Inputs */
+.input {
+  width: 100%; font-family: var(--font-body); font-size: 14px;
+  padding: 10px 13px; border-radius: var(--r-md);
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border-strong); outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input::placeholder { color: var(--text-3); }
+.input:focus { border-color: var(--accent); box-shadow: var(--ring); }
+
+/* Material symbol helper */
+.ms {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal; font-style: normal;
+  line-height: 1; letter-spacing: normal;
+  display: inline-block; vertical-align: middle;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
