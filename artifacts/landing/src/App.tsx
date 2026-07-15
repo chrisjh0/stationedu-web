@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Nav from './components/Nav'
 import Hero from './components/Hero'
 import Features from './components/Features'
@@ -6,24 +7,24 @@ import ForSchools from './components/ForSchools'
 import FounderQuote from './components/FounderQuote'
 import FinalCTA from './components/FinalCTA'
 import Footer from './components/Footer'
-
-const openDemoEmail = () => {
-  window.location.href = `mailto:31christopherho@gmail.com?subject=${encodeURIComponent('Demo Request — Station')}`
-}
+import EmailClientPicker from './components/EmailClientPicker'
 
 export default function App() {
+  const [pickerOpen, setPickerOpen] = useState(false)
+
   return (
     <>
-      <Nav onDemoClick={openDemoEmail} />
+      <Nav onDemoClick={() => setPickerOpen(true)} />
       <main>
-        <Hero onDemoClick={openDemoEmail} />
+        <Hero onDemoClick={() => setPickerOpen(true)} />
         <Features />
         <ForStudents />
         <ForSchools />
         <FounderQuote />
-        <FinalCTA onDemoClick={openDemoEmail} />
+        <FinalCTA onDemoClick={() => setPickerOpen(true)} />
       </main>
       <Footer />
+      <EmailClientPicker open={pickerOpen} onClose={() => setPickerOpen(false)} />
     </>
   )
 }
