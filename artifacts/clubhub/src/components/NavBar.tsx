@@ -1,223 +1,201 @@
-import { useState } from "react";
+// TODO: Mobile sidebar / hamburger menu not yet implemented — build this when starting mobile responsive pass
 import { Link, useLocation } from "wouter";
 import { useAuth } from "./AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useGetNotifications, getGetNotificationsQueryKey } from "@workspace/api-client-react";
-import { format, parseISO } from "date-fns";
+import { useGetClubs, getGetClubsQueryKey, useGetNotifications, getGetNotificationsQueryKey } from "@workspace/api-client-react";
 
-const APP_NAME = import.meta.env.VITE_APP_NAME ?? "ClubHub";
-
-const NAV_LINKS = [
-  { href: "/calendar",    label: "Calendar",       icon: "calendar_month" },
-  { href: "/clubs",       label: "Your Clubs",      icon: "groups" },
-  { href: "/leadership",  label: "Leadership Hub",  icon: "star" },
-  { href: "/directory",   label: "Directory",       icon: "explore" },
-  { href: "/settings",    label: "Settings",        icon: "settings" },
-];
-
-function formatEventTime(t: string): string {
-  const [h, m] = t.split(":");
-  const hour = parseInt(h, 10);
-  const ampm = hour >= 12 ? "PM" : "AM";
-  const display = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-  return `${display}:${m} ${ampm}`;
+function StationMark({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="168 161.5 473 473" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path
+        fillRule="evenodd"
+        d="M193,461 a131,131 0 1,0 262,0 a131,131 0 1,0 -262,0 Z M354,461 a131,131 0 1,0 262,0 a131,131 0 1,0 -262,0 Z"
+        fill="#ffffff"
+      />
+      <circle cx="405" cy="263" r="58.5" fill="#DD5E54" />
+    </svg>
+  );
 }
 
 export function NavBar() {
   const [location] = useLocation();
   const { user } = useAuth();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+
+  const { data: clubsData } = useGetClubs({ limit: 200 }, {
+    query: { queryKey: getGetClubsQueryKey({ limit: 200 }), staleTime: 60_000 }
+  });
   const { data: notifData } = useGetNotifications({
-    query: { queryKey: getGetNotificationsQueryKey(), refetchInterval: 60_000, staleTime: 30_000 }
+    query: { queryKey: getGetNotificationsQueryKey(), staleTime: 30_000 }
   });
 
   if (!user) return null;
 
-  const notifications = notifData?.success ? notifData.notifications : [];
+  const clubs = clubsData?.success ? clubsData.clubs : [];
+  const enrolledCount = clubs.filter(c => c.is_enrolled).length;
+  const totalCount = clubs.length;
   const unreadCount = notifData?.success ? notifData.unread_count : 0;
 
-  const desktopLinks = NAV_LINKS.filter(l => l.href !== "/settings");
-  const mobileLinks = NAV_LINKS;
+  const links: Array<{ href: string; label: string; icon: string; badge?: number | null; adminOnly?: boolean }> = [
+    { href: "/calendar",    label: "Calendar",       icon: "calendar_month" },
+    { href: "/clubs",       label: "Your Clubs",     icon: "groups",           badge: enrolledCount || null },
+    { href: "/directory",   label: "Directory",      icon: "explore",          badge: totalCount || null },
+    { href: "/leadership",  label: "Leadership Hub", icon: "workspace_premium" },
+    { href: "/admin",       label: "Admin",          icon: "insights",         adminOnly: true },
+    { href: "/settings",    label: "Settings",       icon: "settings" },
+  ];
 
-  const closeDrawer = () => setDrawerOpen(false);
+  const visibleLinks = links.filter(l => !l.adminOnly || user.is_admin);
 
-  const activeCls = "bg-primary text-white";
-  const inactiveCls = "text-secondary hover:bg-secondary/10 hover:text-foreground";
-  const activeClsMobile = "bg-primary text-white";
-  const inactiveClsMobile = "text-secondary hover:bg-surface-container hover:text-foreground";
+  const initial = user.full_name?.charAt(0).toUpperCase() || "?";
 
   return (
     <>
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl h-16 bg-white/70 backdrop-blur-[20px] rounded-full shadow-sm z-50 flex items-center justify-between px-6">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">
-            {APP_NAME.charAt(0).toUpperCase()}
-          </div>
-          <span className="font-semibold text-lg hidden md:block">{APP_NAME}</span>
+      {/* Desktop sidebar */}
+      <aside
+        className="hidden md:flex"
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 180,
+          background: "var(--primary)",
+          flexDirection: "column",
+          padding: "20px 14px",
+          zIndex: 100,
+        }}
+      >
+        {/* Brand */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          fontFamily: "var(--font-display)",
+          fontWeight: 700,
+          fontSize: 17,
+          color: "#fff",
+          letterSpacing: "-0.02em",
+          padding: "6px 8px 18px",
+        }}>
+          <StationMark size={26} />
+          Station
         </div>
 
-        <nav className="hidden md:flex items-center gap-1">
-          {desktopLinks.map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${location === link.href ? activeCls : inactiveCls}`}
-            >
-              {link.label}
-            </Link>
-          ))}
+        {/* School context label */}
+        <div style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.4)",
+          padding: "0 10px 12px",
+        }}>
+          Athenian School
+        </div>
+
+        {/* Nav links */}
+        <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {visibleLinks.map(link => {
+            const isActive = location === link.href || (link.href !== "/" && location.startsWith(link.href));
+            return (
+              <Link key={link.href} href={link.href}>
+                <a
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 14px",
+                    borderRadius: "var(--r-md)",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.72)",
+                    fontWeight: 600,
+                    fontSize: 13,
+                    fontFamily: "var(--font-body)",
+                    position: "relative",
+                    cursor: "pointer",
+                    textDecoration: "none",
+                    background: isActive ? "rgba(255,255,255,0.13)" : "transparent",
+                    transition: "background 0.14s, color 0.14s",
+                  }}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
+                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.72)"; }}
+                >
+                  {isActive && (
+                    <span style={{
+                      position: "absolute",
+                      left: -14,
+                      top: 9,
+                      bottom: 9,
+                      width: 4,
+                      borderRadius: "0 3px 3px 0",
+                      background: "var(--accent)",
+                    }} />
+                  )}
+                  <span className="material-symbols-outlined" style={{ fontSize: 19 }}>{link.icon}</span>
+                  <span style={{ flex: 1 }}>{link.label}</span>
+                  {link.badge != null && link.badge > 0 && (
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      background: "rgba(255,255,255,0.16)",
+                      borderRadius: 999,
+                      padding: "2px 7px",
+                      fontFamily: "var(--font-mono)",
+                    }}>
+                      {link.badge}
+                    </span>
+                  )}
+                  {link.href === "/clubs" && unreadCount > 0 && (
+                    <span style={{
+                      width: 7, height: 7, borderRadius: "50%",
+                      background: "var(--accent)",
+                      position: "absolute",
+                      right: 12, top: 10,
+                    }} />
+                  )}
+                </a>
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <button
-            className="hidden md:flex relative text-secondary hover:text-foreground w-10 h-10 rounded-full items-center justify-center hover:bg-secondary/10 transition-colors"
-            onClick={() => setNotifDrawerOpen(true)}
-            aria-label="Notifications"
-          >
-            <span className="material-symbols-outlined">notifications</span>
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-            )}
-          </button>
-
-          <button
-            className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:bg-secondary/10 transition-colors"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open menu"
-          >
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-
-          <Link
-            href="/settings"
-            className="flex items-center gap-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
-          >
-            <Avatar className="w-9 h-9 border border-outline-variant/30">
-              {user.profile_photo && <AvatarImage src={user.profile_photo} alt={user.full_name ?? "Avatar"} />}
-              <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
-                {user.full_name?.charAt(0).toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
-        </div>
-      </header>
-
-      {drawerOpen && (
-        <div className="fixed inset-0 z-[200] md:hidden">
-          <div
-            className="absolute inset-0 bg-black/40 animate-in fade-in duration-200"
-            onClick={closeDrawer}
-          />
-
-          <div className="absolute right-0 top-0 h-full w-72 bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-outline-variant/20">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-base">
-                  {APP_NAME.charAt(0).toUpperCase()}
-                </div>
-                <span className="font-semibold text-lg">{APP_NAME}</span>
-              </div>
-              <button
-                onClick={closeDrawer}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-secondary hover:bg-secondary/10 transition-colors"
-                aria-label="Close menu"
-              >
-                <span className="material-symbols-outlined text-[22px]">close</span>
-              </button>
+        {/* Footer: user info */}
+        <div style={{
+          marginTop: "auto",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "12px 10px",
+          borderTop: "1px solid rgba(255,255,255,0.12)",
+        }}>
+          <div style={{
+            width: 34,
+            height: 34,
+            borderRadius: 9,
+            background: "rgba(255,255,255,0.14)",
+            display: "grid",
+            placeItems: "center",
+            fontWeight: 700,
+            fontSize: 14,
+            color: "#fff",
+            flexShrink: 0,
+          }}>
+            {user.profile_photo ? (
+              <img
+                src={user.profile_photo}
+                alt={user.full_name ?? "Avatar"}
+                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 9 }}
+              />
+            ) : initial}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {user.full_name}
             </div>
-
-            <nav className="flex flex-col gap-1 px-3 py-4 flex-grow">
-              {mobileLinks.map(link => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={closeDrawer}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-colors ${location === link.href ? activeClsMobile : inactiveClsMobile}`}
-                >
-                  <span className="material-symbols-outlined text-[20px]">{link.icon}</span>
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="px-6 py-5 border-t border-outline-variant/20 flex items-center gap-3">
-              <Avatar className="w-9 h-9 border border-outline-variant/30">
-                {user.profile_photo && <AvatarImage src={user.profile_photo} alt={user.full_name ?? "Avatar"} />}
-                <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
-                  {user.full_name?.charAt(0).toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-on-surface truncate">{user.full_name}</p>
-                <p className="text-xs text-secondary truncate">{user.email}</p>
-              </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {user.email}
             </div>
           </div>
         </div>
-      )}
-
-      {notifDrawerOpen && (
-        <div className="fixed inset-0 z-[200]">
-          <div
-            className="absolute inset-0 bg-black/40 animate-in fade-in duration-200"
-            onClick={() => setNotifDrawerOpen(false)}
-          />
-          <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-outline-variant/20">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[20px]">notifications</span>
-                <h2 className="font-semibold text-lg">Notifications</h2>
-              </div>
-              <button
-                onClick={() => setNotifDrawerOpen(false)}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-secondary hover:bg-secondary/10 transition-colors"
-                aria-label="Close notifications"
-              >
-                <span className="material-symbols-outlined text-[22px]">close</span>
-              </button>
-            </div>
-
-            <div className="flex-grow overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center px-6 py-12">
-                  <span className="material-symbols-outlined text-5xl text-outline-variant mb-4">notifications_none</span>
-                  <p className="font-medium text-on-surface mb-1">All caught up!</p>
-                  <p className="text-secondary text-sm">No upcoming events in the next 7 days.</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-outline-variant/20">
-                  {notifications.map(n => (
-                    <div key={n.id} className="px-6 py-4 hover:bg-surface-container transition-colors">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="material-symbols-outlined text-primary text-[18px]">event</span>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm text-on-surface line-clamp-1">{n.title}</p>
-                          <p className="text-xs text-secondary font-medium mt-0.5">{n.club_name}</p>
-                          <p className="text-xs text-secondary mt-1.5 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">calendar_month</span>
-                            {format(parseISO(n.event_date), "EEE, MMM d")} · {formatEventTime(n.event_time)}
-                          </p>
-                          <p className="text-xs text-secondary mt-0.5 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">location_on</span>
-                            {n.location}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container/50">
-              <p className="text-xs text-secondary text-center">Upcoming events in the next 7 days</p>
-            </div>
-          </div>
-        </div>
-      )}
+      </aside>
     </>
   );
 }

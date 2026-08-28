@@ -1,110 +1,254 @@
-import { useState, useMemo } from "react";
-import { useGetClubs } from "@workspace/api-client-react";
+import { useMemo } from "react";
+import { useState } from "react";
+import { useGetClubs, useGetNotifications, getGetNotificationsQueryKey, useGetCalendarEvents, getGetCalendarEventsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import { getClubColor } from "@/lib/color-utils";
 import { ClubDetailModal } from "@/components/ClubDetailModal";
 
 export default function ClubsPage() {
-  const { data, isLoading } = useGetClubs({ limit: 100 });
+  const { data, isLoading } = useGetClubs({ limit: 200 });
   const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
+
+  const today = useMemo(() => new Date(), []);
+  const calParams = useMemo(() => ({ year: today.getFullYear(), month: today.getMonth() + 1 }), [today]);
+  const { data: calData } = useGetCalendarEvents(calParams, {
+    query: { queryKey: getGetCalendarEventsQueryKey(calParams) }
+  });
+  const { data: notifData } = useGetNotifications({
+    query: { queryKey: getGetNotificationsQueryKey() }
+  });
 
   const enrolledClubs = useMemo(() => {
     if (!data?.success) return [];
     return data.clubs.filter(c => c.is_enrolled);
   }, [data]);
 
+  const eventsThisWeek = useMemo(() => {
+    if (!calData?.success) return 0;
+    const enrolled = data?.success ? new Set(data.clubs.filter(c => c.is_enrolled).map(c => c.id)) : new Set<number>();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay() + 1);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    return calData.events.filter(e => {
+      if (!enrolled.has(e.club_id)) return false;
+      const d = new Date(e.event_date);
+      return d >= weekStart && d <= weekEnd;
+    }).length;
+  }, [calData, data, today]);
+
+  const unreadCount = notifData?.success ? notifData.unread_count : 0;
+
+  const statStyle: React.CSSProperties = {
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--r-md)",
+    padding: "16px 18px",
+    position: "relative",
+    overflow: "hidden",
+  };
+
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto px-6 animate-pulse">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <div className="h-9 bg-gray-200 w-40 rounded mb-2"></div>
-            <div className="h-4 bg-gray-200 w-72 rounded"></div>
-          </div>
-          <div className="h-10 bg-gray-200 w-40 rounded-full"></div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-64 bg-gray-200 rounded-2xl"></div>
-          ))}
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ height: 36, background: "var(--surface-2)", borderRadius: "var(--r-sm)", width: 200, marginBottom: 8 }} />
+        <div style={{ height: 16, background: "var(--surface-2)", borderRadius: "var(--r-sm)", width: 300, marginBottom: 28 }} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+          {[1, 2, 3, 4].map(i => <div key={i} style={{ height: 120, background: "var(--surface-2)", borderRadius: "var(--r-md)" }} />)}
         </div>
       </div>
     );
   }
 
+  const STAT_COLORS = ["var(--cat-stem)", "var(--cat-arts)", "var(--cat-academic)", "var(--cat-service)"];
+
   return (
-    <div className="max-w-5xl mx-auto px-6">
-      <div className="flex items-start justify-between mb-8 gap-4">
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 16 }}>
         <div>
-          <h1 className="text-3xl font-bold font-lexend text-on-surface">Your Clubs</h1>
-          <p className="text-secondary mt-1 text-sm">Manage and access all your active organizations.</p>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 30, letterSpacing: "-0.025em", color: "var(--heading)", marginBottom: 4 }}>
+            Your Clubs
+          </h1>
+          <div style={{ fontSize: 13, color: "var(--text-3)" }}>
+            {enrolledClubs.length} active {enrolledClubs.length === 1 ? "membership" : "memberships"}
+          </div>
         </div>
         <Link href="/directory">
-          <Button className="bg-gradient-to-r from-primary to-primary-container text-white rounded-full px-5 h-10 shadow-sm shadow-primary/20 hover:opacity-90 transition-opacity flex-shrink-0">
-            <span className="material-symbols-outlined text-[18px] mr-1">explore</span>
-            Find More Clubs
-          </Button>
+          <a style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 14px",
+            background: "var(--accent)",
+            color: "#fff",
+            borderRadius: "var(--r-sm)",
+            fontFamily: "var(--font-body)",
+            fontWeight: 600,
+            fontSize: 13,
+            textDecoration: "none",
+            flexShrink: 0,
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>explore</span>
+            Find clubs
+          </a>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {enrolledClubs.map(club => (
-          <div
-            key={club.id}
-            className="bg-white rounded-2xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-all border border-transparent hover:border-primary/10 flex flex-col"
-            onClick={() => setSelectedClubId(club.id)}
-          >
-            <div className={`relative h-28 ${getClubColor(club.id)} flex items-center justify-center flex-shrink-0`}>
-              {club.profile_photo ? (
-                <img src={club.profile_photo} alt={club.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-white font-bold text-5xl opacity-80 select-none">
-                  {club.initial}
-                </span>
-              )}
-              {club.is_leader && (
-                <span className="absolute top-3 right-3 bg-primary text-white text-[11px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5 shadow-sm">
-                  <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  Lead
-                </span>
-              )}
-            </div>
-
-            <div className="p-5 flex flex-col flex-grow">
-              <h3 className="font-semibold text-lg font-lexend text-on-surface mb-1 line-clamp-1">{club.name}</h3>
-              <p className="text-secondary text-sm line-clamp-2 flex-grow mb-4">{club.description}</p>
-
-              <div className="border-t border-outline-variant/20 pt-4 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-secondary">
-                  <span className="material-symbols-outlined text-[16px] text-primary/60">calendar_month</span>
-                  <span>{club.default_day || "TBD"}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-secondary">
-                  <span className="material-symbols-outlined text-[16px] text-primary/60">location_on</span>
-                  <span>{club.default_location || "TBD"}</span>
-                </div>
-              </div>
-            </div>
+      {/* Stats row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+        {[
+          { lbl: "Memberships", num: enrolledClubs.length, sub: `${enrolledClubs.filter(c => c.is_leader).length} as leader`, c: STAT_COLORS[0] },
+          { lbl: "Events This Week", num: eventsThisWeek, sub: "enrolled clubs", c: STAT_COLORS[1] },
+          { lbl: "Hours Logged", num: 0, sub: "placeholder — not tracked", c: STAT_COLORS[2] },
+          { lbl: "Notifications", num: unreadCount, sub: "unread", c: STAT_COLORS[3] },
+        ].map(({ lbl, num, sub, c }) => (
+          <div key={lbl} style={{ ...statStyle }}>
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: c }} />
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-3)" }}>{lbl}</div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 30, color: "var(--heading)", lineHeight: 1.1, marginTop: 6 }}>{num}</div>
+            <div style={{ fontSize: 12, color: "var(--text-2)", marginTop: 2 }}>{sub}</div>
           </div>
         ))}
-
-        <Link href="/directory">
-          <div className="bg-white rounded-2xl border-2 border-dashed border-outline-variant/30 p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all min-h-[220px] h-full">
-            <div className="w-14 h-14 rounded-full border-2 border-dashed border-outline-variant/30 flex items-center justify-center mb-4 hover:border-primary/40 transition-colors">
-              <span className="material-symbols-outlined text-2xl text-outline-variant">add</span>
-            </div>
-            <h3 className="font-semibold text-on-surface mb-1 font-lexend">Join a New Club</h3>
-            <p className="text-secondary text-sm">Browse the directory to find more organizations.</p>
-          </div>
-        </Link>
       </div>
 
+      {/* Section heading */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "4px 0 14px" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, letterSpacing: "-0.01em", color: "var(--heading)" }}>
+          Active memberships
+        </h2>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-3)", letterSpacing: "0.06em" }}>
+          SORTED BY MEETING DAY
+        </span>
+      </div>
+
+      {enrolledClubs.length === 0 ? (
+        <div style={{
+          background: "var(--surface)",
+          border: "1px dashed var(--border-strong)",
+          borderRadius: "var(--r-md)",
+          padding: "48px 24px",
+          textAlign: "center",
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 40, color: "var(--text-3)", display: "block", marginBottom: 12 }}>group_off</span>
+          <p style={{ fontWeight: 600, color: "var(--heading)", marginBottom: 6 }}>No clubs yet</p>
+          <p style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 16 }}>Browse the directory to find clubs to join.</p>
+          <Link href="/directory">
+            <a style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "var(--accent)", color: "#fff", borderRadius: "var(--r-sm)", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13, textDecoration: "none" }}>
+              Browse Directory
+            </a>
+          </Link>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+          {enrolledClubs.map(club => {
+            const color = getClubColor(club.id);
+            return (
+              <div
+                key={club.id}
+                onClick={() => setSelectedClubId(club.id)}
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  alignItems: "flex-start",
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderLeft: `4px solid ${color}`,
+                  borderRadius: "var(--r-md)",
+                  padding: "16px 18px",
+                  cursor: "pointer",
+                  transition: "box-shadow 0.14s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = "var(--sh)")}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+              >
+                {/* Avatar */}
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "var(--r-sm)",
+                  background: color,
+                  color: "#fff",
+                  display: "grid",
+                  placeItems: "center",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 800,
+                  fontSize: 17,
+                  flexShrink: 0,
+                }}>
+                  {club.profile_photo ? (
+                    <img src={club.profile_photo} alt={club.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "var(--r-sm)" }} />
+                  ) : club.initial}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <span style={{ fontWeight: 700, fontSize: 15, color: "var(--heading)" }}>{club.name}</span>
+                    {club.is_leader ? (
+                      <span style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        padding: "3px 8px",
+                        borderRadius: "var(--r-pill)",
+                        background: "var(--primary)",
+                        color: "#fff",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                        whiteSpace: "nowrap",
+                      }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 12 }}>star</span>
+                        Leader
+                      </span>
+                    ) : (
+                      <span style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        padding: "3px 8px",
+                        borderRadius: "var(--r-pill)",
+                        background: `color-mix(in oklab, ${color} 16%, var(--surface))`,
+                        color: `color-mix(in oklab, ${color} 72%, var(--text))`,
+                        border: `1px solid color-mix(in oklab, ${color} 26%, transparent)`,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                        whiteSpace: "nowrap",
+                      }}>
+                        {club.type}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--text-2)", margin: "4px 0 10px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                    {club.description}
+                  </div>
+                  <div style={{ display: "flex", gap: 16 }}>
+                    {club.default_day && (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, fontFamily: "var(--font-mono)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>schedule</span>
+                        {club.default_day}
+                      </span>
+                    )}
+                    {club.default_location && (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, fontFamily: "var(--font-mono)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>place</span>
+                        {club.default_location}
+                      </span>
+                    )}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, fontFamily: "var(--font-mono)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>group</span>
+                      {club.member_count}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {selectedClubId && (
-        <ClubDetailModal
-          clubId={selectedClubId}
-          onClose={() => setSelectedClubId(null)}
-        />
+        <ClubDetailModal clubId={selectedClubId} onClose={() => setSelectedClubId(null)} />
       )}
     </div>
   );

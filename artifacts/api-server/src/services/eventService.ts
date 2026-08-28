@@ -1,5 +1,4 @@
-import { db, eventsTable, clubsTable } from "@workspace/db";
-import { eq, and, gte, asc } from "drizzle-orm";
+import { supabase } from "../lib/supabase.js";
 import { ok, err, type ServiceResult } from "./types.js";
 import { htmlEscape, todayUtc } from "./utils.js";
 import { resolveLeaderStatus } from "./leaderHelpers.js";
@@ -22,25 +21,27 @@ export interface CreateEventInput {
 }
 
 export async function getClubEvents(clubId: number): Promise<ServiceResult<EventShape[]>> {
-  const clubArr = await db
-    .select()
-    .from(clubsTable)
-    .where(eq(clubsTable.id, clubId))
+  const { data: clubs } = await supabase
+    .from("clubs")
+    .select("id")
+    .eq("id", clubId)
     .limit(1);
 
-  if (!clubArr[0]) {
-    return err(404, "Not found");
-  }
+  if (!clubs?.[0]) return err(404, "Not found");
 
   const today = todayUtc();
-  const events = await db
-    .select()
-    .from(eventsTable)
-    .where(and(eq(eventsTable.club_id, clubId), gte(eventsTable.event_date, today)))
-    .orderBy(asc(eventsTable.event_date), asc(eventsTable.event_time));
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("id, title, event_date, event_time, location, description")
+    .eq("club_id", clubId)
+    .gte("event_date", today)
+    .order("event_date", { ascending: true })
+    .order("event_time", { ascending: true });
+
+  if (error) throw error;
 
   return ok(
-    events.map((e) => ({
+    (events ?? []).map((e: EventShape) => ({
       id: e.id,
       title: e.title,
       event_date: e.event_date,
@@ -57,20 +58,16 @@ export async function createEvent(
   userId: number,
   userEmail: string
 ): Promise<ServiceResult<{ event_id: number }>> {
-  const clubArr = await db
-    .select()
-    .from(clubsTable)
-    .where(eq(clubsTable.id, clubId))
+  const { data: clubs } = await supabase
+    .from("clubs")
+    .select("id")
+    .eq("id", clubId)
     .limit(1);
 
-  if (!clubArr[0]) {
-    return err(404, "Not found");
-  }
+  if (!clubs?.[0]) return err(404, "Not found");
 
   const isLdr = await resolveLeaderStatus(clubId, userId, userEmail);
-  if (!isLdr) {
-    return err(403, "You must be a leader of this club");
-  }
+  if (!isLdr) return err(403, "You must be a leader of this club");
 
   const { title, event_date, event_time, location, description } = input;
 
@@ -79,13 +76,11 @@ export async function createEvent(
   }
 
   const today = todayUtc();
-  if (event_date < today) {
-    return err(400, "Event date must be today or in the future");
-  }
+  if (event_date < today) return err(400, "Event date must be today or in the future");
 
-  const [event] = await db
-    .insert(eventsTable)
-    .values({
+  const { data: event, error } = await supabase
+    .from("events")
+    .insert({
       club_id: clubId,
       title: htmlEscape(title),
       event_date,
@@ -93,9 +88,11 @@ export async function createEvent(
       location: htmlEscape(location),
       description: htmlEscape(description ?? ""),
     })
-    .returning();
+    .select("id")
+    .single();
 
-  return ok({ event_id: event.id });
+  if (error || !event) throw error;
+  return ok({ event_id: (event as { id: number }).id });
 }
 
 export async function deleteEvent(
@@ -103,22 +100,17 @@ export async function deleteEvent(
   userId: number,
   userEmail: string
 ): Promise<ServiceResult<void>> {
-  const eventArr = await db
-    .select()
-    .from(eventsTable)
-    .where(eq(eventsTable.id, eventId))
+  const { data: events } = await supabase
+    .from("events")
+    .select("id, club_id")
+    .eq("id", eventId)
     .limit(1);
 
-  if (!eventArr[0]) {
-    return err(404, "Not found");
-  }
+  if (!events?.[0]) return err(404, "Not found");
 
-  const isLdr = await resolveLeaderStatus(eventArr[0].club_id, userId, userEmail);
-  if (!isLdr) {
-    return err(403, "You must be a leader of this club");
-  }
+  const isLdr = await resolveLeaderStatus((events[0] as { id: number; club_id: number }).club_id, userId, userEmail);
+  if (!isLdr) return err(403, "You must be a leader of this club");
 
-  await db.delete(eventsTable).where(eq(eventsTable.id, eventId));
-
+  await supabase.from("events").delete().eq("id", eventId);
   return ok(undefined);
 }

@@ -9,6 +9,7 @@ export interface UserProfile {
   full_name: string;
   graduation_year?: number | null;
   profile_photo?: string;
+  is_admin?: boolean;
 }
 
 interface AuthContextType {

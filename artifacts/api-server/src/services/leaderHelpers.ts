@@ -1,25 +1,26 @@
-import { db, clubLeadersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { supabase } from "../lib/supabase.js";
 
 export async function resolveLeaderStatus(
   clubId: number,
   userId: number,
   userEmail: string
 ): Promise<boolean> {
-  const leaders = await db
-    .select()
-    .from(clubLeadersTable)
-    .where(eq(clubLeadersTable.club_id, clubId));
+  const { data: leaders } = await supabase
+    .from("club_leaders")
+    .select("id, user_id, email")
+    .eq("club_id", clubId);
+
+  if (!leaders) return false;
 
   const byUserId = leaders.find((l) => l.user_id === userId);
   if (byUserId) return true;
 
   const byEmail = leaders.find((l) => l.email === userEmail);
   if (byEmail) {
-    await db
-      .update(clubLeadersTable)
-      .set({ user_id: userId })
-      .where(eq(clubLeadersTable.id, byEmail.id));
+    await supabase
+      .from("club_leaders")
+      .update({ user_id: userId })
+      .eq("id", byEmail.id);
     return true;
   }
 

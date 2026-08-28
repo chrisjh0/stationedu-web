@@ -1,16 +1,12 @@
 import { useRef, useState } from "react";
-import { useGetUserSettings, useUpdateUserSettings } from "@workspace/api-client-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useGetUserSettings, useUpdateUserSettings, getGetUserSettingsQueryKey } from "@workspace/api-client-react";
 import { useAuth } from "@/components/AuthContext";
-import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetUserSettingsQueryKey } from "@workspace/api-client-react";
+import { toast } from "sonner";
+
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? "";
 
 interface Settings {
-  id?: number;
   email: string;
   full_name: string;
   profile_photo?: string;
@@ -37,35 +33,110 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Account");
 
   if (isLoading || !data?.settings) {
-    return <div className="max-w-5xl mx-auto px-6 py-10 text-center text-secondary">Loading settings...</div>;
+    return (
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ height: 36, background: "var(--surface-2)", borderRadius: "var(--r-sm)", width: 160, marginBottom: 8 }} />
+        <div style={{ height: 16, background: "var(--surface-2)", borderRadius: "var(--r-sm)", width: 260, marginBottom: 28 }} />
+        <div style={{ height: 400, background: "var(--surface)", borderRadius: "var(--r-md)", border: "1px solid var(--border)" }} />
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row gap-10">
-      <div className="w-full md:w-64 flex-shrink-0">
-        <h1 className="text-2xl font-bold font-lexend mb-6 text-on-surface">Settings</h1>
-        <nav className="flex flex-col gap-1">
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 30, letterSpacing: "-0.025em", color: "var(--heading)", marginBottom: 4 }}>
+          Settings
+        </h1>
+        <div style={{ fontSize: 13, color: "var(--text-3)" }}>Account &amp; preferences</div>
+      </div>
+
+      {/* Settings card */}
+      <div style={{
+        display: "flex",
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--r-md)",
+        overflow: "hidden",
+        boxShadow: "var(--sh-sm)",
+      }}>
+        {/* Left rail */}
+        <div style={{
+          width: 200,
+          flexShrink: 0,
+          borderRight: "1px solid var(--border)",
+          padding: 14,
+          background: "var(--surface-2)",
+        }}>
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left ${activeTab === tab.id ? "bg-primary text-white" : "hover:bg-surface-container text-secondary"}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "var(--r-sm)",
+                border: "none",
+                background: activeTab === tab.id ? "var(--surface)" : "transparent",
+                color: activeTab === tab.id ? "var(--primary)" : "var(--text-2)",
+                fontWeight: 600,
+                fontSize: 13.5,
+                cursor: "pointer",
+                textAlign: "left",
+                boxShadow: activeTab === tab.id ? "var(--sh-sm)" : "none",
+                marginBottom: 2,
+                fontFamily: "var(--font-body)",
+              }}
             >
-              <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{tab.icon}</span>
               {tab.id}
             </button>
           ))}
-        </nav>
-      </div>
+        </div>
 
-      <div className="flex-grow bg-white rounded-3xl shadow-sm p-8 border border-outline-variant/20">
-        <SettingsForm
-          key={data.settings.email}
-          settings={data.settings as Settings}
-          activeTab={activeTab}
-        />
+        {/* Right content */}
+        <div style={{ flex: 1, padding: "28px 32px" }}>
+          <SettingsForm settings={data.settings as Settings} activeTab={activeTab} />
+        </div>
       </div>
     </div>
+  );
+}
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      style={{
+        width: 42,
+        height: 24,
+        borderRadius: 999,
+        background: checked ? "var(--accent)" : "var(--border-strong)",
+        border: "none",
+        cursor: "pointer",
+        position: "relative",
+        flexShrink: 0,
+        transition: "background 0.16s",
+      }}
+    >
+      <span style={{
+        position: "absolute",
+        top: 3,
+        left: checked ? 21 : 3,
+        width: 18,
+        height: 18,
+        borderRadius: "50%",
+        background: "#fff",
+        boxShadow: "var(--sh-sm)",
+        transition: "left 0.16s",
+      }} />
+    </button>
   );
 }
 
@@ -76,6 +147,13 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarUrl, setAvatarUrl] = useState(settings.profile_photo ?? "");
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [fullName, setFullName] = useState(settings.full_name);
+  const [notifEmail, setNotifEmail] = useState(settings.notifications_email);
+  const [notifReminders, setNotifReminders] = useState(settings.notifications_reminders);
+  const [notifNewClubs, setNotifNewClubs] = useState(settings.notifications_new_clubs);
+  const [privacyShowProfile, setPrivacyShowProfile] = useState(settings.privacy_show_profile ?? true);
+  const [privacyShowMemberships, setPrivacyShowMemberships] = useState(settings.privacy_show_memberships ?? true);
+  const [privacyAllowDms, setPrivacyAllowDms] = useState(settings.privacy_allow_dms ?? true);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -85,7 +163,8 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
       const token = localStorage.getItem("clubhub_token");
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/storage/uploads", {
+      const base = API_BASE || "";
+      const res = await fetch(`${base}/api/storage/uploads`, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -102,7 +181,7 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
           queryClient.invalidateQueries({ queryKey: getGetUserSettingsQueryKey() });
           if (user) setUser({ ...user, profile_photo: url });
         },
-        onError: (err) => { toast.error(err.message || "Failed to save avatar"); },
+        onError: err => toast.error(err.message || "Failed to save avatar"),
       });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
@@ -112,17 +191,6 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
     }
   };
 
-  const [fullName, setFullName] = useState(settings.full_name);
-  const [notifEmail, setNotifEmail] = useState(settings.notifications_email);
-  const [notifReminders, setNotifReminders] = useState(settings.notifications_reminders);
-  const [notifNewClubs, setNotifNewClubs] = useState(settings.notifications_new_clubs);
-  const [notifChat, setNotifChat] = useState(settings.notifications_chat);
-  const [notifDigest, setNotifDigest] = useState(settings.notifications_digest);
-  const [notifPush, setNotifPush] = useState(settings.notifications_push_mobile);
-  const [privacyShowProfile, setPrivacyShowProfile] = useState(settings.privacy_show_profile ?? true);
-  const [privacyShowMemberships, setPrivacyShowMemberships] = useState(settings.privacy_show_memberships ?? true);
-  const [privacyAllowDms, setPrivacyAllowDms] = useState(settings.privacy_allow_dms ?? true);
-
   const handleSave = () => {
     updateMutation.mutate({
       data: {
@@ -130,187 +198,205 @@ function SettingsForm({ settings, activeTab }: { settings: Settings; activeTab: 
         notifications_email: notifEmail,
         notifications_reminders: notifReminders,
         notifications_new_clubs: notifNewClubs,
-        notifications_chat: notifChat,
-        notifications_digest: notifDigest,
-        notifications_push_mobile: notifPush,
         privacy_show_profile: privacyShowProfile,
         privacy_show_memberships: privacyShowMemberships,
         privacy_allow_dms: privacyAllowDms,
       }
     }, {
       onSuccess: () => {
-        toast.success("Settings saved successfully");
+        toast.success("Settings saved");
         queryClient.invalidateQueries({ queryKey: getGetUserSettingsQueryKey() });
         if (user) setUser({ ...user, full_name: fullName });
       },
-      onError: (err) => {
-        toast.error(err.message || "Failed to save settings");
-      }
+      onError: err => toast.error(err.message || "Failed to save"),
     });
+  };
+
+  const fieldLabel: React.CSSProperties = {
+    fontFamily: "var(--font-mono)",
+    fontSize: 11,
+    letterSpacing: "0.05em",
+    textTransform: "uppercase",
+    color: "var(--text-3)",
+    display: "block",
+    marginBottom: 7,
+  };
+
+  const fieldInput: React.CSSProperties = {
+    width: "100%",
+    height: 42,
+    padding: "0 13px",
+    borderRadius: "var(--r-md)",
+    border: "1px solid var(--border-strong)",
+    background: "var(--surface)",
+    color: "var(--text)",
+    fontFamily: "var(--font-body)",
+    fontSize: 14,
+    outline: "none",
+  };
+
+  const saveBtn: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "8px 18px",
+    background: "var(--accent)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "var(--r-sm)",
+    fontFamily: "var(--font-body)",
+    fontWeight: 600,
+    fontSize: 13.5,
+    cursor: "pointer",
   };
 
   return (
     <>
       {activeTab === "Account" && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <h2 className="text-xl font-semibold mb-6">Account Profile</h2>
+        <>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, marginBottom: 20, color: "var(--heading)" }}>
+            Account profile
+          </h2>
 
-          <div className="flex items-center gap-6 mb-8 pb-8 border-b border-outline-variant/20">
-            <Avatar className="w-20 h-20 border-2 border-primary/10">
-              {avatarUrl && <AvatarImage src={avatarUrl} alt={user?.full_name ?? "Avatar"} />}
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-                {user?.full_name?.charAt(0).toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
+          {/* Avatar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, paddingBottom: 22, borderBottom: "1px solid var(--border)", marginBottom: 22 }}>
+            <div style={{ width: 64, height: 64, borderRadius: "var(--r-md)", background: "var(--primary)", color: "#fff", display: "grid", placeItems: "center", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 26, flexShrink: 0, overflow: "hidden" }}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={user?.full_name ?? "Avatar"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (user?.full_name?.charAt(0).toUpperCase() ?? "U")}
+            </div>
             <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".jpg,.jpeg,.png,.gif,.webp"
-                className="hidden"
-                onChange={handleAvatarUpload}
-              />
-              <Button
-                variant="outline"
-                className="rounded-full text-sm h-9 border-outline-variant text-secondary"
+              <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={handleAvatarUpload} />
+              <button
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "var(--surface-2)", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13, color: "var(--text-2)", cursor: "pointer" }}
                 disabled={avatarUploading}
                 onClick={() => fileInputRef.current?.click()}
               >
-                {avatarUploading ? "Uploading..." : "Change Avatar"}
-              </Button>
+                {avatarUploading ? "Uploading..." : "Change avatar"}
+              </button>
+              <p style={{ marginTop: 6, fontSize: 12, color: "var(--text-3)" }}>JPG or PNG, max 800 KB</p>
             </div>
           </div>
 
-          <div className="space-y-6 max-w-md">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-secondary">Full Name</label>
-              <Input
-                value={fullName}
-                onChange={e => setFullName(e.target.value)}
-                className="h-12 bg-surface-container-lowest rounded-xl focus-visible:ring-primary/20"
-              />
+          {/* Fields */}
+          <div style={{ maxWidth: 420, display: "flex", flexDirection: "column", gap: 18 }}>
+            <div>
+              <label style={fieldLabel}>Full name</label>
+              <input style={fieldInput} value={fullName} onChange={e => setFullName(e.target.value)} />
             </div>
-            <div className="space-y-2 opacity-60">
-              <label className="text-sm font-medium text-secondary">Email Address</label>
-              <Input
-                value={settings.email}
-                readOnly
-                disabled
-                className="h-12 bg-surface-container-low rounded-xl"
-              />
-              <p className="text-xs text-secondary mt-1">Managed by your school Google account.</p>
+            <div>
+              <label style={fieldLabel}>Email address</label>
+              <input style={{ ...fieldInput, background: "var(--surface-2)", color: "var(--text-3)" }} value={settings.email} disabled />
             </div>
 
-            <div className="pt-6">
-              <Button
-                onClick={handleSave}
-                disabled={updateMutation.isPending}
-                className="bg-primary hover:bg-primary-container text-white rounded-xl px-8 shadow-sm"
-              >
-                {updateMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
+            {/* Quick notifications */}
+            <div style={{ marginTop: 6 }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, color: "var(--heading)", marginBottom: 10 }}>
+                Quick notifications
+              </h3>
+              {[
+                { lbl: "Email notifications", v: notifEmail, set: setNotifEmail },
+                { lbl: "Event reminders", v: notifReminders, set: setNotifReminders },
+                { lbl: "New clubs digest", v: notifNewClubs, set: setNotifNewClubs },
+              ].map(({ lbl, v, set }) => (
+                <div key={lbl} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{lbl}</span>
+                  <Toggle checked={v} onChange={set} />
+                </div>
+              ))}
+            </div>
+
+            <div style={{ paddingTop: 4 }}>
+              <button style={saveBtn} onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save changes"}
+              </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {activeTab === "Notifications" && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <h2 className="text-xl font-semibold mb-2">Notification Preferences</h2>
-          <p className="text-secondary text-sm mb-8">Choose how you want to be notified about club activities.</p>
+        <>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, marginBottom: 6, color: "var(--heading)" }}>
+            Notification preferences
+          </h2>
+          <p style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 24 }}>Choose how you want to be notified about club activities.</p>
 
-          <div className="space-y-6 max-w-2xl">
+          <div style={{ maxWidth: 480, display: "flex", flexDirection: "column" }}>
             {[
-              { label: "Email Notifications", desc: "Receive important updates via email", value: notifEmail, set: setNotifEmail },
-              { label: "Event Reminders", desc: "Get notified 24h before an event starts", value: notifReminders, set: setNotifReminders },
-              { label: "New Clubs", desc: "Weekly digest of newly formed clubs", value: notifNewClubs, set: setNotifNewClubs },
-              { label: "Chat Messages", desc: "Notifications when you are mentioned in club chats", value: notifChat, set: setNotifChat },
-              { label: "Weekly Digest", desc: "Summary of all your club activities", value: notifDigest, set: setNotifDigest },
-              { label: "Push Notifications", desc: "Receive mobile alerts (requires app installation)", value: notifPush, set: setNotifPush },
-            ].map(({ label, desc, value, set }) => (
-              <div key={label} className="flex items-center justify-between py-3 border-b border-outline-variant/20">
+              { lbl: "Email Notifications", desc: "Receive important updates via email", v: notifEmail, set: setNotifEmail },
+              { lbl: "Event Reminders", desc: "Get notified 24h before an event starts", v: notifReminders, set: setNotifReminders },
+              { lbl: "New Clubs Digest", desc: "Weekly digest of newly formed clubs", v: notifNewClubs, set: setNotifNewClubs },
+            ].map(({ lbl, desc, v, set }) => (
+              <div key={lbl} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderBottom: "1px solid var(--border)" }}>
                 <div>
-                  <h4 className="font-medium text-on-surface">{label}</h4>
-                  <p className="text-sm text-secondary">{desc}</p>
+                  <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 14 }}>{lbl}</div>
+                  <div style={{ fontSize: 12.5, color: "var(--text-3)", marginTop: 2 }}>{desc}</div>
                 </div>
-                <Switch checked={value} onCheckedChange={set} />
+                <Toggle checked={v} onChange={set} />
               </div>
             ))}
-
-            <div className="pt-6">
-              <Button
-                onClick={handleSave}
-                disabled={updateMutation.isPending}
-                className="bg-primary hover:bg-primary-container text-white rounded-xl px-8 shadow-sm"
-              >
-                {updateMutation.isPending ? "Saving..." : "Save Preferences"}
-              </Button>
+            <div style={{ paddingTop: 20 }}>
+              <button style={saveBtn} onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save preferences"}
+              </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {activeTab === "Privacy" && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <h2 className="text-xl font-semibold mb-2">Privacy Settings</h2>
-          <p className="text-secondary text-sm mb-8">Control who can see your profile and activity.</p>
+        <>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, marginBottom: 6, color: "var(--heading)" }}>
+            Privacy settings
+          </h2>
+          <p style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 24 }}>Control who can see your profile and activity.</p>
 
-          <div className="space-y-6 max-w-2xl">
+          <div style={{ maxWidth: 480, display: "flex", flexDirection: "column" }}>
             {[
-              { label: "Show Profile to Other Students", desc: "Allow club members to see your name and photo", value: privacyShowProfile, set: setPrivacyShowProfile },
-              { label: "Show Club Memberships", desc: "Display which clubs you belong to on your public profile", value: privacyShowMemberships, set: setPrivacyShowMemberships },
-              { label: "Allow Direct Messages", desc: "Let other students message you through Station", value: privacyAllowDms, set: setPrivacyAllowDms },
-            ].map(({ label, desc, value, set }) => (
-              <div key={label} className="flex items-center justify-between py-3 border-b border-outline-variant/20">
+              { lbl: "Show Profile to Other Students", desc: "Allow club members to see your name and photo", v: privacyShowProfile, set: setPrivacyShowProfile },
+              { lbl: "Show Club Memberships", desc: "Display which clubs you belong to on your profile", v: privacyShowMemberships, set: setPrivacyShowMemberships },
+              { lbl: "Allow Direct Messages", desc: "Let other students message you through Station", v: privacyAllowDms, set: setPrivacyAllowDms },
+            ].map(({ lbl, desc, v, set }) => (
+              <div key={lbl} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderBottom: "1px solid var(--border)" }}>
                 <div>
-                  <h4 className="font-medium text-on-surface">{label}</h4>
-                  <p className="text-sm text-secondary">{desc}</p>
+                  <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 14 }}>{lbl}</div>
+                  <div style={{ fontSize: 12.5, color: "var(--text-3)", marginTop: 2 }}>{desc}</div>
                 </div>
-                <Switch checked={value} onCheckedChange={set} />
+                <Toggle checked={v} onChange={set} />
               </div>
             ))}
-
-            <div className="pt-6">
-              <Button
-                onClick={handleSave}
-                disabled={updateMutation.isPending}
-                className="bg-primary hover:bg-primary-container text-white rounded-xl px-8 shadow-sm"
-              >
-                {updateMutation.isPending ? "Saving..." : "Save Preferences"}
-              </Button>
+            <div style={{ paddingTop: 20 }}>
+              <button style={saveBtn} onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save preferences"}
+              </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {activeTab === "Appearance" && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <h2 className="text-xl font-semibold mb-2">Appearance</h2>
-          <p className="text-secondary text-sm mb-8">Customise how Station looks for you.</p>
+        <>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, marginBottom: 6, color: "var(--heading)" }}>
+            Appearance
+          </h2>
+          <p style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 24 }}>Customise how Station looks for you.</p>
 
-          <div className="grid grid-cols-2 gap-4 max-w-md mb-8">
-            {[
-              { label: "Light", icon: "light_mode", active: true },
-              { label: "Dark", icon: "dark_mode", active: false },
-              { label: "System", icon: "brightness_auto", active: false },
-              { label: "High Contrast", icon: "contrast", active: false },
-            ].map(({ label, icon, active }) => (
-              <button
-                key={label}
-                disabled
-                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all opacity-60 cursor-not-allowed ${active ? "border-primary bg-primary/5" : "border-outline-variant/30 bg-surface-container"}`}
-              >
-                <span className="material-symbols-outlined text-[28px] text-secondary">{icon}</span>
-                <span className="text-sm font-medium text-secondary">{label}</span>
-              </button>
-            ))}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--r-md)",
+            padding: "16px 20px",
+            fontSize: 13,
+            color: "var(--text-3)",
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>info</span>
+            Theme switching is a placeholder — not yet implemented. Add to a future sprint.
           </div>
-
-          <div className="flex items-center gap-3 bg-surface-container rounded-2xl p-4 text-sm text-secondary">
-            <span className="material-symbols-outlined text-[20px] flex-shrink-0">info</span>
-            Theme switching will be available in an upcoming release.
-          </div>
-        </div>
+        </>
       )}
     </>
   );

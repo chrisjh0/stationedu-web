@@ -1,39 +1,35 @@
-import { db, enrollmentsTable, clubsTable, clubLeadersTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { supabase } from "../lib/supabase.js";
 import { ok, err, type ServiceResult } from "./types.js";
 
 export async function enroll(
   clubId: number,
   userId: number
 ): Promise<ServiceResult<{ enrollment_id: number }>> {
-  const clubArr = await db
-    .select()
-    .from(clubsTable)
-    .where(eq(clubsTable.id, clubId))
+  const { data: clubs } = await supabase
+    .from("clubs")
+    .select("id")
+    .eq("id", clubId)
     .limit(1);
 
-  if (!clubArr[0]) {
-    return err(404, "Not found");
-  }
+  if (!clubs?.[0]) return err(404, "Not found");
 
-  const existing = await db
-    .select()
-    .from(enrollmentsTable)
-    .where(
-      and(eq(enrollmentsTable.user_id, userId), eq(enrollmentsTable.club_id, clubId))
-    )
+  const { data: existing } = await supabase
+    .from("enrollments")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("club_id", clubId)
     .limit(1);
 
-  if (existing[0]) {
-    return ok({ enrollment_id: existing[0].id });
-  }
+  if (existing?.[0]) return ok({ enrollment_id: existing[0].id });
 
-  const [enrollment] = await db
-    .insert(enrollmentsTable)
-    .values({ user_id: userId, club_id: clubId })
-    .returning();
+  const { data: enrollment, error } = await supabase
+    .from("enrollments")
+    .insert({ user_id: userId, club_id: clubId })
+    .select("id")
+    .single();
 
-  return ok({ enrollment_id: enrollment.id });
+  if (error || !enrollment) throw error;
+  return ok({ enrollment_id: (enrollment as { id: number }).id });
 }
 
 export async function unenroll(
@@ -41,29 +37,29 @@ export async function unenroll(
   userId: number,
   userEmail: string
 ): Promise<ServiceResult<void>> {
-  const clubArr = await db
-    .select()
-    .from(clubsTable)
-    .where(eq(clubsTable.id, clubId))
+  const { data: clubs } = await supabase
+    .from("clubs")
+    .select("id")
+    .eq("id", clubId)
     .limit(1);
 
-  if (!clubArr[0]) {
-    return err(404, "Not found");
-  }
+  if (!clubs?.[0]) return err(404, "Not found");
 
-  const leaders = await db
-    .select()
-    .from(clubLeadersTable)
-    .where(eq(clubLeadersTable.club_id, clubId));
+  const { data: leaders } = await supabase
+    .from("club_leaders")
+    .select("user_id, email")
+    .eq("club_id", clubId);
 
-  const isLdr = leaders.some((l) => l.user_id === userId || l.email === userEmail);
-  if (isLdr) {
-    return err(403, "Leaders cannot unenroll from their own club.");
-  }
+  const isLdr = (leaders ?? []).some(
+    (l: { user_id: number | null; email: string }) => l.user_id === userId || l.email === userEmail
+  );
+  if (isLdr) return err(403, "Leaders cannot unenroll from their own club.");
 
-  await db
-    .delete(enrollmentsTable)
-    .where(and(eq(enrollmentsTable.user_id, userId), eq(enrollmentsTable.club_id, clubId)));
+  await supabase
+    .from("enrollments")
+    .delete()
+    .eq("user_id", userId)
+    .eq("club_id", clubId);
 
   return ok(undefined);
 }

@@ -1,7 +1,9 @@
 import { useState, useCallback } from "react";
-import { useGetCalendarEvents, getGetCalendarEventsQueryKey } from "@workspace/api-client-react";
+import { useGetCalendarEvents, getGetCalendarEventsQueryKey, useEnrollInClub, getGetClubsQueryKey } from "@workspace/api-client-react";
 import { ClubDetailModal } from "@/components/ClubDetailModal";
-import { Link } from "wouter";
+import { getClubColor } from "@/lib/color-utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   format, addDays, startOfWeek, isSameDay,
   startOfMonth, endOfMonth, eachDayOfInterval,
@@ -9,13 +11,13 @@ import {
 } from "date-fns";
 
 type ViewMode = "daily" | "monthly";
-type Filter = "All" | "Enrolled" | "Available";
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<Filter>("All");
   const [viewMode, setViewMode] = useState<ViewMode>("daily");
+  const queryClient = useQueryClient();
+  const enrollMutation = useEnrollInClub();
 
   const calendarParams = {
     year: selectedDate.getFullYear(),
@@ -23,9 +25,7 @@ export default function CalendarPage() {
   };
 
   const { data, isLoading } = useGetCalendarEvents(calendarParams, {
-    query: {
-      queryKey: getGetCalendarEventsQueryKey(calendarParams),
-    }
+    query: { queryKey: getGetCalendarEventsQueryKey(calendarParams) }
   });
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -38,16 +38,14 @@ export default function CalendarPage() {
   const calDays = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
   const events = data?.success ? data.events : [];
-
-  const dayEvents = events.filter(e => isSameDay(new Date(e.event_date), selectedDate));
-  const filteredEvents = dayEvents.filter(e => {
-    if (filter === "All") return true;
-    if (filter === "Enrolled") return e.is_enrolled;
-    if (filter === "Available") return !e.is_enrolled;
-    return true;
-  }).sort((a, b) => a.event_time.localeCompare(b.event_time));
-
   const today = new Date();
+
+  const dayEvents = events
+    .filter(e => isSameDay(new Date(e.event_date), selectedDate))
+    .sort((a, b) => a.event_time.localeCompare(b.event_time));
+
+  const enrolledCount = dayEvents.filter(e => e.is_enrolled).length;
+  const availableCount = dayEvents.filter(e => !e.is_enrolled).length;
 
   const handleWeekKeyDown = useCallback((e: React.KeyboardEvent, day: Date) => {
     if (e.key === "ArrowLeft") { e.preventDefault(); setSelectedDate(prev => addDays(prev, -1)); }
@@ -55,174 +53,312 @@ export default function CalendarPage() {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedDate(day); }
   }, []);
 
+  const handleQuickJoin = (e: React.MouseEvent, clubId: number) => {
+    e.stopPropagation();
+    enrollMutation.mutate({ id: clubId }, {
+      onSuccess: () => {
+        toast.success("Joined successfully");
+        queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey(calendarParams) });
+        queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
+      },
+      onError: (err) => toast.error(err.message || "Failed to join"),
+    });
+  };
+
+  const cardStyle: React.CSSProperties = {
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--r-md)",
+    boxShadow: "var(--sh-sm)",
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-6">
-      <div className="flex items-start justify-between mb-8 gap-4">
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      {/* Page header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, gap: 16 }}>
         <div>
-          <h1 className="text-3xl font-bold font-lexend text-on-surface">
-            {format(selectedDate, "MMMM yyyy")}
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 30, letterSpacing: "-0.025em", color: "var(--heading)", marginBottom: 4 }}>
+            Calendar
           </h1>
-          <p className="text-secondary text-sm mt-1">
-            Today is {format(today, "EEEE, MMMM d")}
-          </p>
+          <div style={{ fontSize: 13, color: "var(--text-3)" }}>
+            {format(today, "EEEE, MMMM d, yyyy")}
+          </div>
         </div>
-        <div className="bg-surface-container rounded-full p-1 flex mt-1 flex-shrink-0">
+
+        {/* Controls */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            background: "var(--surface-2)",
+            padding: 4,
+            borderRadius: 8,
+            border: "1px solid var(--border)",
+          }}>
+            <button
+              onClick={() => setViewMode("daily")}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "var(--font-body)",
+                fontWeight: 600,
+                fontSize: 13,
+                background: viewMode === "daily" ? "var(--primary)" : "transparent",
+                color: viewMode === "daily" ? "#fff" : "var(--text-2)",
+                transition: "background 0.14s, color 0.14s",
+              }}
+            >Day</button>
+            <button
+              onClick={() => setViewMode("monthly")}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "var(--font-body)",
+                fontWeight: 600,
+                fontSize: 13,
+                background: viewMode === "monthly" ? "var(--primary)" : "transparent",
+                color: viewMode === "monthly" ? "#fff" : "var(--text-2)",
+                transition: "background 0.14s, color 0.14s",
+              }}
+            >Month</button>
+          </div>
           <button
-            onClick={() => setViewMode("daily")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${viewMode === "daily" ? "bg-primary text-white shadow-sm" : "text-secondary hover:text-foreground"}`}
+            onClick={() => { setSelectedDate(new Date()); setViewMode("daily"); }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "6px 12px",
+              borderRadius: 6,
+              border: "1px solid var(--border-strong)",
+              background: "var(--surface)",
+              color: "var(--text-2)",
+              fontFamily: "var(--font-body)",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: "pointer",
+            }}
           >
-            Daily
-          </button>
-          <button
-            onClick={() => setViewMode("monthly")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${viewMode === "monthly" ? "bg-primary text-white shadow-sm" : "text-secondary hover:text-foreground"}`}
-          >
-            Monthly
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>today</span>
+            Today
           </button>
         </div>
       </div>
 
+      {/* ── DAY VIEW ── */}
       {viewMode === "daily" && (
         <>
-          <div className="bg-white rounded-2xl shadow-sm p-4 mb-8 flex justify-between items-center">
-            <button
-              className="w-8 h-8 flex items-center justify-center text-secondary hover:bg-surface-container rounded-full transition-colors"
-              onClick={() => setSelectedDate(addDays(selectedDate, -7))}
-              aria-label="Previous week"
-            >
-              <span className="material-symbols-outlined">chevron_left</span>
-            </button>
+          {/* Week strip */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(7, 1fr)",
+            gap: 8,
+            marginBottom: 20,
+          }}>
+            {weekDays.map(day => {
+              const isSelected = isSameDay(day, selectedDate);
+              const isToday = isSameDay(day, today);
+              const dayStr = format(day, "yyyy-MM-dd");
+              const dayEventColors = [...new Set(
+                events.filter(e => e.event_date === dayStr).map(e => getClubColor(e.club_id))
+              )];
 
-            <div className="flex gap-1 sm:gap-2 md:gap-4" role="group" aria-label="Week days">
-              {weekDays.map(day => {
-                const isSelected = isSameDay(day, selectedDate);
-                const dayStr = format(day, "yyyy-MM-dd");
-                const hasEnrolled = events.some(e => e.event_date === dayStr && e.is_enrolled);
-                const hasAvailable = events.some(e => e.event_date === dayStr && !e.is_enrolled);
-                const isToday = isSameDay(day, today);
-
-                return (
-                  <div
-                    key={day.toISOString()}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`${format(day, "EEEE, MMMM d")}${isSelected ? ", selected" : ""}${isToday ? ", today" : ""}`}
-                    aria-pressed={isSelected}
-                    className={`flex flex-col items-center cursor-pointer p-2 rounded-2xl w-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isSelected ? "bg-primary text-white" : isToday ? "ring-1 ring-primary hover:bg-surface-container" : "hover:bg-surface-container"}`}
-                    onClick={() => setSelectedDate(day)}
-                    onKeyDown={e => handleWeekKeyDown(e, day)}
-                  >
-                    <span className={`text-xs font-medium mb-1 ${isSelected ? "text-white/80" : "text-secondary"}`}>
-                      {format(day, "EEE").charAt(0)}
-                    </span>
-                    <span className="text-lg font-semibold">{format(day, "d")}</span>
-                    <div className="flex gap-0.5 mt-1 h-2">
-                      {hasEnrolled && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/70" : "bg-red-500"}`}></div>}
-                      {hasAvailable && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/70" : "bg-green-500"}`}></div>}
-                    </div>
+              return (
+                <div
+                  key={day.toISOString()}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={format(day, "EEEE, MMMM d")}
+                  aria-pressed={isSelected}
+                  onClick={() => setSelectedDate(day)}
+                  onKeyDown={e => handleWeekKeyDown(e, day)}
+                  style={{
+                    background: isSelected ? "var(--primary)" : "var(--surface)",
+                    border: `1px solid ${isSelected ? "var(--primary)" : "var(--border)"}`,
+                    borderRadius: "var(--r-md)",
+                    padding: 10,
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: isSelected ? "var(--sh-sm)" : "none",
+                  }}
+                >
+                  <div style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    color: isSelected ? "rgba(255,255,255,0.7)" : "var(--text-3)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    marginBottom: 3,
+                  }}>
+                    {format(day, "EEE")}
                   </div>
-                );
-              })}
-            </div>
-
-            <button
-              className="w-8 h-8 flex items-center justify-center text-secondary hover:bg-surface-container rounded-full transition-colors"
-              onClick={() => setSelectedDate(addDays(selectedDate, 7))}
-              aria-label="Next week"
-            >
-              <span className="material-symbols-outlined">chevron_right</span>
-            </button>
+                  <div style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 800,
+                    fontSize: 20,
+                    color: isSelected ? "#fff" : isToday ? "var(--accent)" : "var(--heading)",
+                    lineHeight: 1,
+                    marginBottom: 7,
+                  }}>
+                    {format(day, "d")}
+                  </div>
+                  <div style={{ display: "flex", gap: 3 }}>
+                    {dayEventColors.slice(0, 3).map((color, i) => (
+                      <span key={i} style={{
+                        display: "block",
+                        flex: 1,
+                        height: 4,
+                        borderRadius: 2,
+                        background: isSelected ? "rgba(255,255,255,0.6)" : color,
+                      }} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 className="text-xl font-semibold text-on-surface">
-                {format(selectedDate, "EEEE, MMMM d")}
-              </h2>
-              <div>
-                <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-2">Quick Filters</p>
-                <div className="flex gap-2">
-                  {(["All", "Enrolled", "Available"] as Filter[]).map(f => (
-                    <button
-                      key={f}
-                      onClick={() => setFilter(f)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${filter === f ? "bg-primary text-white border-primary" : "border-outline-variant/40 text-secondary hover:bg-surface-container"}`}
-                    >
-                      {f === "All" ? "All Events" : f}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+          {/* Day section heading */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "4px 0 14px" }}>
+            <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, letterSpacing: "-0.01em", color: "var(--heading)" }}>
+              {format(selectedDate, "EEEE")} · {dayEvents.length} {dayEvents.length === 1 ? "event" : "events"}
+            </h2>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-3)", letterSpacing: "0.06em" }}>
+              {enrolledCount} ENROLLED · {availableCount} AVAILABLE
+            </span>
           </div>
 
           {isLoading ? (
-            <div className="animate-pulse space-y-4">
-              {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-200 rounded-2xl"></div>)}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{ height: 72, background: "var(--surface-2)", borderRadius: "var(--r-md)", animation: "pulse 1.5s infinite" }} />
+              ))}
             </div>
-          ) : filteredEvents.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
-              <span className="material-symbols-outlined text-4xl text-secondary opacity-40 mb-2 block">event_busy</span>
-              <p className="text-on-surface font-medium mb-1">No events on this day.</p>
-              <p className="text-secondary text-sm mb-4">Looking for something to do?</p>
-              <Link
-                href="/directory"
-                className="inline-flex items-center gap-1.5 text-primary text-sm font-medium hover:underline"
-              >
-                <span className="material-symbols-outlined text-[16px]">explore</span>
-                Browse the Directory to find clubs meeting today
-              </Link>
+          ) : dayEvents.length === 0 ? (
+            <div style={{ ...cardStyle, padding: "48px 24px", textAlign: "center" }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 40, color: "var(--text-3)", display: "block", marginBottom: 12 }}>event_busy</span>
+              <p style={{ fontWeight: 600, color: "var(--heading)", marginBottom: 6 }}>No events on this day</p>
+              <p style={{ fontSize: 13, color: "var(--text-3)" }}>Browse the Directory to find clubs meeting soon.</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredEvents.map(event => {
+            <div style={{ ...cardStyle, overflow: "hidden" }}>
+              {dayEvents.map((event, idx) => {
                 const hour = parseInt(event.event_time.split(":")[0]);
                 const minute = event.event_time.split(":")[1];
                 const isPM = hour >= 12;
                 const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                const color = getClubColor(event.club_id);
 
                 return (
                   <div
                     key={event.id}
-                    className="bg-white rounded-2xl shadow-sm flex overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => setSelectedClubId(event.club_id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 16,
+                      padding: "14px 18px",
+                      borderBottom: idx < dayEvents.length - 1 ? "1px solid var(--border)" : "none",
+                      borderLeft: `4px solid ${color}`,
+                      cursor: "pointer",
+                      transition: "background 0.1s",
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-2)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                   >
-                    <div className={`w-1.5 flex-shrink-0 ${event.is_enrolled ? "bg-red-500" : "bg-green-500"}`} />
+                    {/* Time */}
+                    <div style={{
+                      fontFamily: "var(--font-mono)",
+                      fontWeight: 600,
+                      fontSize: 13,
+                      color: "var(--text)",
+                      width: 74,
+                      flexShrink: 0,
+                    }}>
+                      {displayHour}:{minute}
+                      <small style={{ display: "block", color: "var(--text-3)", fontSize: 10 }}>{isPM ? "PM" : "AM"}</small>
+                    </div>
 
-                    <div className="flex flex-1 items-center gap-4 p-4">
-                      <div className="w-16 flex-shrink-0 flex flex-col justify-center border-r border-outline-variant/30 pr-4">
-                        <span className="font-semibold text-lg leading-tight">{displayHour}:{minute}</span>
-                        <span className="text-xs text-secondary">{isPM ? "PM" : "AM"}</span>
+                    {/* Event info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14.5, color: "var(--heading)", marginBottom: 3 }}>
+                        {event.title}
                       </div>
-
-                      <div className="flex-grow min-w-0">
-                        <h3 className="font-semibold text-base leading-tight">{event.title}</h3>
-                        <p className="text-sm text-secondary">{event.club_name}</p>
-                        <div className="flex items-center gap-1 mt-1.5 text-xs text-secondary">
-                          <span className="material-symbols-outlined text-[13px]">location_on</span>
+                      <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12.5, color: "var(--text-2)", fontFamily: "var(--font-mono)" }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--text-3)" }}>group</span>
+                          {event.club_name}
+                        </span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12.5, color: "var(--text-2)", fontFamily: "var(--font-mono)" }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--text-3)" }}>place</span>
                           {event.location}
-                        </div>
+                        </span>
                       </div>
+                    </div>
 
-                      <div className="flex-shrink-0 flex items-center gap-2">
-                        {event.is_enrolled ? (
-                          <span className="bg-red-100 text-red-600 text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
-                            Enrolled
+                    {/* Status */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      {event.is_enrolled ? (
+                        <span style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          padding: "4px 9px",
+                          borderRadius: "var(--r-pill)",
+                          background: "color-mix(in oklab, var(--success) 16%, var(--surface))",
+                          color: "var(--success)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.04em",
+                        }}>
+                          Enrolled
+                        </span>
+                      ) : (
+                        <>
+                          <span style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            padding: "4px 9px",
+                            borderRadius: "var(--r-pill)",
+                            background: "color-mix(in oklab, var(--border-strong) 30%, var(--surface))",
+                            color: "var(--text-3)",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.04em",
+                          }}>
+                            Available
                           </span>
-                        ) : (
-                          <>
-                            <span className="bg-green-100 text-green-600 text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
-                              Available
-                            </span>
-                            <button
-                              className="bg-gradient-to-r from-primary to-primary-container text-white text-xs px-3 py-1.5 rounded-lg font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
-                              onClick={e => { e.stopPropagation(); setSelectedClubId(event.club_id); }}
-                            >
-                              Join
-                            </button>
-                          </>
-                        )}
-                      </div>
+                          <button
+                            onClick={e => handleQuickJoin(e, event.club_id)}
+                            disabled={enrollMutation.isPending}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 5,
+                              height: 32,
+                              padding: "0 13px",
+                              borderRadius: "var(--r-sm)",
+                              border: "none",
+                              background: "var(--accent)",
+                              color: "#fff",
+                              fontWeight: 600,
+                              fontSize: 12.5,
+                              cursor: "pointer",
+                              fontFamily: "var(--font-body)",
+                            }}
+                          >
+                            Join
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -232,77 +368,110 @@ export default function CalendarPage() {
         </>
       )}
 
+      {/* ── MONTH VIEW ── */}
       {viewMode === "monthly" && (
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
+        <>
+          {/* Month nav */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, marginBottom: 16 }}>
             <button
-              className="w-8 h-8 flex items-center justify-center text-secondary hover:bg-surface-container rounded-full transition-colors"
               onClick={() => setSelectedDate(addMonths(selectedDate, -1))}
+              style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", background: "var(--surface)", cursor: "pointer", color: "var(--text-2)" }}
               aria-label="Previous month"
             >
-              <span className="material-symbols-outlined">chevron_left</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_left</span>
             </button>
-            <span className="font-semibold text-on-surface">{format(selectedDate, "MMMM yyyy")}</span>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-2)", letterSpacing: "0.04em" }}>
+              {format(selectedDate, "MMMM yyyy")}
+            </span>
             <button
-              className="w-8 h-8 flex items-center justify-center text-secondary hover:bg-surface-container rounded-full transition-colors"
               onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
+              style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", background: "var(--surface)", cursor: "pointer", color: "var(--text-2)" }}
               aria-label="Next month"
             >
-              <span className="material-symbols-outlined">chevron_right</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_right</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-7 mb-1">
+          {/* Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+            {/* Day headers */}
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
-              <div key={d} className="text-center text-xs font-semibold text-secondary py-2">{d}</div>
+              <div key={d} style={{
+                textAlign: "left",
+                fontFamily: "var(--font-mono)",
+                fontSize: 10.5,
+                fontWeight: 600,
+                color: "var(--text-3)",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                padding: "4px 6px",
+              }}>{d}</div>
             ))}
-          </div>
 
-          <div className="grid grid-cols-7 gap-0.5">
             {calDays.map(day => {
               const dayStr = format(day, "yyyy-MM-dd");
-              const isSelected = isSameDay(day, selectedDate);
               const isCurrentMonth = isSameMonth(day, selectedDate);
-              const hasEnrolled = events.some(e => e.event_date === dayStr && e.is_enrolled);
-              const hasAvailable = events.some(e => e.event_date === dayStr && !e.is_enrolled);
               const isToday = isSameDay(day, today);
+              const isSelected = isSameDay(day, selectedDate);
+              const dayEvts = events.filter(e => e.event_date === dayStr);
 
               return (
                 <div
                   key={day.toISOString()}
                   role="button"
                   tabIndex={0}
-                  aria-label={`${format(day, "MMMM d")}${isToday ? ", today" : ""}${isSelected ? ", selected" : ""}`}
                   onClick={() => { setSelectedDate(day); setViewMode("daily"); }}
                   onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedDate(day); setViewMode("daily"); } }}
-                  className={`
-                    flex flex-col items-center justify-center cursor-pointer rounded-xl transition-colors min-h-[52px] px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
-                    ${isSelected ? "bg-primary text-white" : "hover:bg-surface-container"}
-                    ${!isCurrentMonth ? "opacity-40" : ""}
-                  `}
+                  style={{
+                    minHeight: 96,
+                    background: isCurrentMonth ? "var(--surface)" : "var(--surface-2)",
+                    border: `1px solid ${isToday ? "var(--accent)" : "var(--border)"}`,
+                    boxShadow: isToday ? `inset 0 0 0 1px var(--accent)` : "none",
+                    borderRadius: "var(--r-sm)",
+                    padding: 7,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                    cursor: "pointer",
+                    opacity: isCurrentMonth ? 1 : 0.5,
+                    outline: "none",
+                  }}
                 >
-                  <span className={`text-sm font-medium flex items-center justify-center ${isToday && !isSelected ? "bg-primary text-white rounded-full w-7 h-7" : ""}`}>
+                  <span style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: isSelected ? "var(--accent)" : "var(--text-2)",
+                  }}>
                     {format(day, "d")}
                   </span>
-                  <div className="flex gap-0.5 mt-0.5 h-2">
-                    {hasEnrolled && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/70" : "bg-red-500"}`} />}
-                    {hasAvailable && <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/70" : "bg-green-500"}`} />}
-                  </div>
+                  {dayEvts.slice(0, 3).map(evt => (
+                    <span key={evt.id} style={{
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      color: "#fff",
+                      background: getClubColor(evt.club_id),
+                      borderRadius: 4,
+                      padding: "2px 6px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}>
+                      {evt.club_name || evt.title}
+                    </span>
+                  ))}
                 </div>
               );
             })}
           </div>
-
-          <p className="text-center text-xs text-secondary mt-5 opacity-70">
-            Click any day to view its schedule
-          </p>
-        </div>
+        </>
       )}
 
       {selectedClubId && (
         <ClubDetailModal
           clubId={selectedClubId}
           onClose={() => setSelectedClubId(null)}
+          onEnrollmentChange={() => queryClient.invalidateQueries({ queryKey: getGetCalendarEventsQueryKey(calendarParams) })}
         />
       )}
     </div>

@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { getClubColor } from "@/lib/color-utils";
 import { ClubDetailModal } from "@/components/ClubDetailModal";
+import { useEnrollInClub, useUnenrollFromClub, getGetClubsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 50;
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? "";
 
 interface ClubItem {
@@ -23,52 +23,52 @@ interface ClubItem {
   member_count: number;
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  Club: "groups",
-  Committee: "gavel",
-  Team: "sports",
-  Union: "diversity_3",
-  Other: "category",
-};
+const TYPE_FILTERS = ["All", "Club", "Team", "Committee", "Union"];
 
-const CATEGORY_FILTERS = ["All", "Club", "Committee", "Team", "Union", "Other"];
-
-async function fetchClubsPage(offset: number): Promise<{ clubs: ClubItem[]; hasMore: boolean }> {
+async function fetchAllClubs(): Promise<ClubItem[]> {
   const token = localStorage.getItem("clubhub_token");
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}/api/clubs?limit=${PAGE_SIZE}&offset=${offset}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-  } catch {
-    throw new Error("Network error — please check your connection and try again.");
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+  const result: ClubItem[] = [];
+  let offset = 0;
+  while (true) {
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/api/clubs?limit=${PAGE_SIZE}&offset=${offset}`, { headers });
+    } catch {
+      throw new Error("Network error — check your connection and try again.");
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(body.error || `Failed to load clubs (${res.status})`);
+    }
+    const data = await res.json() as { clubs?: ClubItem[]; hasMore?: boolean };
+    result.push(...(data.clubs ?? []));
+    if (!data.hasMore) break;
+    offset += PAGE_SIZE;
+    if (result.length > 2000) break; // safety cap
   }
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({})) as { error?: string };
-    throw new Error(body.error || `Failed to load clubs (${res.status} ${res.statusText})`);
-  }
-  const data = await res.json() as { clubs?: ClubItem[]; hasMore?: boolean };
-  return { clubs: data.clubs ?? [], hasMore: data.hasMore ?? false };
+  return result;
 }
 
 export default function DirectoryPage() {
   const [allClubs, setAllClubs] = useState<ClubItem[]>([]);
-  const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
 
-  const loadFirstPage = useCallback(async () => {
+  const queryClient = useQueryClient();
+  const enrollMutation = useEnrollInClub();
+  const unenrollMutation = useUnenrollFromClub();
+
+  const loadClubs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { clubs, hasMore: more } = await fetchClubsPage(0);
+      const clubs = await fetchAllClubs();
       setAllClubs(clubs);
-      setHasMore(more);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load clubs";
-      toast.error(message);
+      toast.error(err instanceof Error ? err.message : "Failed to load clubs");
     } finally {
       setIsLoading(false);
     }
@@ -76,160 +76,313 @@ export default function DirectoryPage() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadFirstPage();
-  }, [loadFirstPage]);
+    loadClubs();
+  }, [loadClubs]);
 
-  const loadMore = async () => {
-    setIsLoadingMore(true);
-    try {
-      const { clubs, hasMore: more } = await fetchClubsPage(allClubs.length);
-      setAllClubs(prev => [...prev, ...clubs]);
-      setHasMore(more);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load more clubs";
-      toast.error(message);
-    } finally {
-      setIsLoadingMore(false);
+  const filteredClubs = useMemo(() => {
+    return allClubs.filter(c => {
+      const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.description.toLowerCase().includes(search.toLowerCase());
+      const matchType = typeFilter === "All" || c.type === typeFilter;
+      return matchSearch && matchType;
+    });
+  }, [allClubs, search, typeFilter]);
+
+  const categoryCount = useMemo(() => new Set(allClubs.map(c => c.type)).size, [allClubs]);
+
+  const handleEnroll = (e: React.MouseEvent, club: ClubItem) => {
+    e.stopPropagation();
+    if (club.is_enrolled) {
+      unenrollMutation.mutate({ id: club.id }, {
+        onSuccess: () => {
+          setAllClubs(prev => prev.map(c => c.id === club.id ? { ...c, is_enrolled: false } : c));
+          queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
+        },
+        onError: err => toast.error(err.message || "Failed to unenroll"),
+      });
+    } else {
+      enrollMutation.mutate({ id: club.id }, {
+        onSuccess: () => {
+          toast.success("Joined successfully");
+          setAllClubs(prev => prev.map(c => c.id === club.id ? { ...c, is_enrolled: true } : c));
+          queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
+        },
+        onError: err => toast.error(err.message || "Failed to join"),
+      });
     }
   };
 
-  const filteredClubs = useMemo(() => {
-    return allClubs.filter(club => {
-      const matchSearch = club.name.toLowerCase().includes(search.toLowerCase());
-      const matchCat = categoryFilter === "All" || club.type === categoryFilter;
-      return matchSearch && matchCat;
-    });
-  }, [allClubs, search, categoryFilter]);
+  const cardStyle: React.CSSProperties = {
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--r-md)",
+    overflow: "hidden",
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-6">
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold font-lexend mb-3 text-on-surface">Explore Clubs</h1>
-        <p className="text-secondary text-lg">Discover your next passion. Join the community.</p>
+    <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 16 }}>
+        <div>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 30, letterSpacing: "-0.025em", color: "var(--heading)", marginBottom: 4 }}>
+            Directory
+          </h1>
+          <div style={{ fontSize: 13, color: "var(--text-3)" }}>
+            {allClubs.length} clubs · {categoryCount} categories
+          </div>
+        </div>
+
+        {/* Search + view toggle */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ position: "relative", width: 240 }}>
+            <span className="material-symbols-outlined" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", fontSize: 19 }}>search</span>
+            <input
+              placeholder="Search clubs…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{
+                width: "100%",
+                height: 40,
+                padding: "0 12px 0 38px",
+                borderRadius: "var(--r-md)",
+                border: "1px solid var(--border-strong)",
+                background: "var(--surface)",
+                color: "var(--text)",
+                fontFamily: "var(--font-body)",
+                fontSize: 13.5,
+                outline: "none",
+              }}
+            />
+          </div>
+
+          {/* View toggle */}
+          <div style={{ display: "flex", gap: 2, background: "var(--surface-2)", borderRadius: "var(--r-sm)", padding: 3, border: "1px solid var(--border)" }}>
+            <button onClick={() => setViewMode("list")} style={{ width: 30, height: 28, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 5, border: "none", cursor: "pointer", background: viewMode === "list" ? "var(--surface)" : "transparent", color: viewMode === "list" ? "var(--primary)" : "var(--text-3)", boxShadow: viewMode === "list" ? "var(--sh-sm)" : "none" }} aria-label="List view">
+              <span className="material-symbols-outlined" style={{ fontSize: 17 }}>view_list</span>
+            </button>
+            <button onClick={() => setViewMode("grid")} style={{ width: 30, height: 28, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 5, border: "none", cursor: "pointer", background: viewMode === "grid" ? "var(--surface)" : "transparent", color: viewMode === "grid" ? "var(--primary)" : "var(--text-3)", boxShadow: viewMode === "grid" ? "var(--sh-sm)" : "none" }} aria-label="Grid view">
+              <span className="material-symbols-outlined" style={{ fontSize: 17 }}>grid_view</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm p-4 mb-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-        <div className="relative flex-grow min-w-0">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-[20px]">search</span>
-          <Input
-            className="pl-10 h-11 bg-[#F7F9FB] border-none rounded-2xl focus-visible:ring-primary/20"
-            placeholder="Search clubs by name..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            aria-label="Search clubs"
-          />
-        </div>
-        <div className="flex flex-wrap gap-2 flex-shrink-0" role="group" aria-label="Filter by category">
-          {CATEGORY_FILTERS.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
-              aria-pressed={categoryFilter === cat}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${categoryFilter === cat ? "bg-primary text-white" : "bg-surface-container text-secondary hover:bg-surface-container-high"}`}
-            >
-              {cat === "All" ? "All Categories" : cat}
-            </button>
-          ))}
-        </div>
+      {/* Filter pills + count */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        {TYPE_FILTERS.map((cat, i) => (
+          <button
+            key={cat}
+            onClick={() => setTypeFilter(cat)}
+            style={{
+              padding: "6px 13px",
+              borderRadius: "var(--r-pill)",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "var(--font-body)",
+              fontWeight: 600,
+              fontSize: 13,
+              background: typeFilter === cat ? (i === 0 ? "var(--primary)" : "var(--primary)") : "var(--surface-2)",
+              color: typeFilter === cat ? "#fff" : "var(--text-2)",
+              transition: "background 0.14s, color 0.14s",
+            }}
+          >
+            {cat}
+          </button>
+        ))}
+        <span style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-3)", letterSpacing: "0.06em" }}>
+          SHOWING {filteredClubs.length} OF {allClubs.length}
+        </span>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 animate-pulse">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-            <div key={i} className="h-52 bg-gray-200 rounded-3xl" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 1, ...cardStyle }}>
+          {[1,2,3,4,5].map(i => (
+            <div key={i} style={{ height: 72, background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }} />
           ))}
         </div>
       ) : filteredClubs.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl shadow-sm">
-          <span className="material-symbols-outlined text-5xl text-outline-variant mb-4 block">search_off</span>
-          <h2 className="text-xl font-semibold mb-2 text-on-surface">No clubs found</h2>
-          <p className="text-secondary">Try adjusting your search or category filter.</p>
+        <div style={{ ...cardStyle, padding: "48px 24px", textAlign: "center" }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 40, color: "var(--text-3)", display: "block", marginBottom: 12 }}>search_off</span>
+          <p style={{ fontWeight: 600, color: "var(--heading)", marginBottom: 6 }}>No clubs found</p>
+          <p style={{ fontSize: 13, color: "var(--text-3)" }}>Try adjusting your search or filter.</p>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {filteredClubs.map(club => (
-              <div
-                key={club.id}
-                className="bg-white rounded-3xl shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer border border-transparent hover:border-primary/10 flex flex-col"
-                onClick={() => setSelectedClubId(club.id)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white ${getClubColor(club.id)} flex-shrink-0`}>
-                    {club.profile_photo ? (
-                      <img
-                        src={club.profile_photo}
-                        alt={club.name}
-                        className="w-full h-full object-cover rounded-2xl"
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-[22px]">
-                        {TYPE_ICONS[club.type] ?? "category"}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="bg-surface-container text-secondary text-xs px-2 py-0.5 rounded-md font-medium">
-                      {club.type}
-                    </span>
-                    {club.is_enrolled && (
-                      <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-medium">
-                        Enrolled
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <h3 className="font-semibold text-base mb-1.5 text-on-surface line-clamp-1">{club.name}</h3>
-                <p className="text-secondary text-sm line-clamp-3 flex-grow mb-4">{club.description}</p>
-
-                <div className="mt-auto flex items-center justify-between">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1 text-xs text-secondary">
-                      <span className="material-symbols-outlined text-[15px]">schedule</span>
-                      <span>{club.default_day}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-secondary">
-                      <span className="material-symbols-outlined text-[15px]">group</span>
-                      <span>{club.member_count} {club.member_count === 1 ? "member" : "members"}</span>
-                    </div>
-                  </div>
-                  <button
-                    className="text-primary text-sm font-medium flex items-center gap-0.5 hover:gap-1.5 transition-all"
-                    onClick={e => { e.stopPropagation(); setSelectedClubId(club.id); }}
-                    aria-label={`View details for ${club.name}`}
-                  >
-                    View Details
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </button>
-                </div>
-              </div>
+      ) : viewMode === "list" ? (
+        /* ── LIST VIEW ── */
+        <div style={cardStyle}>
+          {/* Table header */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "2.6fr 1fr 1.1fr 0.7fr auto",
+            alignItems: "center",
+            gap: 16,
+            padding: "9px 18px",
+            background: "var(--surface-2)",
+            borderBottom: "1px solid var(--border)",
+          }}>
+            {["Club", "Category", "Meets", "Members", ""].map((h, i) => (
+              <span key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-3)" }}>{h}</span>
             ))}
           </div>
 
-          {hasMore && (
-            <div className="flex justify-center mt-10">
-              <Button
-                variant="outline"
-                className="rounded-full px-8 h-12 text-sm font-medium border-outline-variant/40 hover:bg-surface-container"
-                onClick={loadMore}
-                disabled={isLoadingMore}
+          {filteredClubs.map((club, idx) => {
+            const color = getClubColor(club.id);
+            return (
+              <div
+                key={club.id}
+                onClick={() => setSelectedClubId(club.id)}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "2.6fr 1fr 1.1fr 0.7fr auto",
+                  alignItems: "center",
+                  gap: 16,
+                  padding: "12px 18px",
+                  borderBottom: idx < filteredClubs.length - 1 ? "1px solid var(--border)" : "none",
+                  cursor: "pointer",
+                  transition: "background 0.1s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-2)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
-                {isLoadingMore ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-secondary/30 border-t-secondary rounded-full animate-spin" />
-                    Loading…
+                {/* Club name + desc */}
+                <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: "var(--r-sm)",
+                    background: color, color: "#fff", display: "grid",
+                    placeItems: "center", fontFamily: "var(--font-display)",
+                    fontWeight: 800, fontSize: 17, flexShrink: 0,
+                  }}>
+                    {club.profile_photo ? (
+                      <img src={club.profile_photo} alt={club.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "var(--r-sm)" }} />
+                    ) : club.initial}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "var(--heading)" }}>{club.name}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "38ch" }}>{club.description}</div>
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    fontSize: 10.5, fontWeight: 700, padding: "4px 9px",
+                    borderRadius: "var(--r-pill)",
+                    background: color, color: "#fff",
+                    textTransform: "uppercase", letterSpacing: "0.04em",
+                  }}>
+                    {club.type}
                   </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">expand_more</span>
-                    Load More Clubs
-                  </span>
-                )}
-              </Button>
-            </div>
-          )}
-        </>
+                </div>
+
+                {/* Meets */}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--text-2)", fontFamily: "var(--font-mono)" }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 15, color: "var(--text-3)" }}>schedule</span>
+                  {club.default_day || "—"}
+                </div>
+
+                {/* Members */}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--text-2)", fontFamily: "var(--font-mono)" }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 15, color: "var(--text-3)" }}>group</span>
+                  {club.member_count}
+                </div>
+
+                {/* Action */}
+                <div onClick={e => e.stopPropagation()}>
+                  {club.is_enrolled ? (
+                    <button
+                      onClick={e => handleEnroll(e, club)}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        height: 32, padding: "0 13px", borderRadius: "var(--r-sm)",
+                        border: "none",
+                        background: `color-mix(in oklab, var(--success) 14%, var(--surface))`,
+                        color: "var(--success)", fontWeight: 600, fontSize: 12.5, cursor: "pointer",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>
+                      Enrolled
+                    </button>
+                  ) : (
+                    <button
+                      onClick={e => handleEnroll(e, club)}
+                      disabled={enrollMutation.isPending}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        height: 32, padding: "0 13px", borderRadius: "var(--r-sm)",
+                        border: "none",
+                        background: "var(--accent)", color: "#fff",
+                        fontWeight: 600, fontSize: 12.5, cursor: "pointer",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
+                      Join
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* ── GRID VIEW ── */
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+          {filteredClubs.map(club => {
+            const color = getClubColor(club.id);
+            return (
+              <div
+                key={club.id}
+                onClick={() => setSelectedClubId(club.id)}
+                style={{
+                  display: "flex", gap: 14, alignItems: "flex-start",
+                  background: "var(--surface)", border: "1px solid var(--border)",
+                  borderLeft: `4px solid ${color}`, borderRadius: "var(--r-md)",
+                  padding: "16px 18px", cursor: "pointer", transition: "box-shadow 0.14s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = "var(--sh)")}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+              >
+                <div style={{ width: 40, height: 40, borderRadius: "var(--r-sm)", background: color, color: "#fff", display: "grid", placeItems: "center", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17, flexShrink: 0 }}>
+                  {club.initial}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <span style={{ fontWeight: 700, fontSize: 14, color: "var(--heading)" }}>{club.name}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: "3px 8px", borderRadius: "var(--r-pill)", background: color, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap", flexShrink: 0 }}>
+                      {club.type}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--text-2)", margin: "4px 0 10px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
+                    {club.description}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontFamily: "var(--font-mono)", color: "var(--text-3)" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>schedule</span>
+                        {club.default_day || "—"}
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontFamily: "var(--font-mono)", color: "var(--text-3)" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>group</span>
+                        {club.member_count}
+                      </span>
+                    </div>
+                    <div onClick={e => e.stopPropagation()}>
+                      {club.is_enrolled ? (
+                        <button onClick={e => handleEnroll(e, club)} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "var(--success)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)" }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span> Enrolled
+                        </button>
+                      ) : (
+                        <button onClick={e => handleEnroll(e, club)} style={{ padding: "5px 12px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--r-sm)", fontSize: 12.5, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-body)" }}>
+                          Join
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {selectedClubId && (

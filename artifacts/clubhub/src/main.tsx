@@ -10,6 +10,7 @@ const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
 if (apiUrl) setBaseUrl(apiUrl);
 
 if (import.meta.env.DEV) {
+  // eslint-disable-next-line no-console
   console.log("[ClubHub] API base URL:", apiUrl ?? "(none — using Vite proxy)");
 }
 

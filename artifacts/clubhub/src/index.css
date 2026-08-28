@@ -2,260 +2,290 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
+/* ============================================================
+   STATION Design Tokens
+   ============================================================ */
+:root {
+  /* Surfaces */
+  --bg:            #F5F6F9;
+  --surface:       #FFFFFF;
+  --surface-2:     #EEF1F5;
+  --surface-3:     #E4E8EF;
+  --border:        #E3E7EE;
+  --border-strong: #CCD3DF;
+
+  /* Text */
+  --text:    #181D29;
+  --text-2:  #4C5567;
+  --text-3:  #79839A;
+  --heading: #121726;
+
+  /* Brand: Ink Navy */
+  --primary:        #232E54;
+  --primary-hover:  #1B2342;
+  --primary-active: #141B33;
+  --on-primary:     #FFFFFF;
+
+  /* Accent: Coral */
+  --accent:        #DD5E54;
+  --accent-hover:  #C64A41;
+  --accent-active: #A93B33;
+  --on-accent:     #FFFFFF;
+  --accent-wash:   #FBEAE8;
+  --navy-wash:     #E7EAF3;
+
+  /* Semantic */
+  --success: #2F7D5B;
+  --warning: #C0892B;
+  --danger:  #C0473B;
+  --info:    #3F6FB0;
+
+  /* Category palette */
+  --cat-arts:        #C56A4A;
+  --cat-athletics:   #BB8E33;
+  --cat-environment: #6F9266;
+  --cat-stem:        #3C8A84;
+  --cat-academic:    #5A7BA6;
+  --cat-culture:     #8A5E8C;
+  --cat-service:     #BE6385;
+
+  /* Fonts */
+  --font-display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Border radius */
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   10px;
+  --r-lg:   14px;
+  --r-xl:   20px;
+  --r-pill: 999px;
+
+  /* Elevation */
+  --sh-sm: 0 1px 2px rgba(18,23,38,.05), 0 1px 3px rgba(18,23,38,.05);
+  --sh:    0 2px 4px rgba(18,23,38,.04), 0 6px 16px rgba(18,23,38,.07);
+  --sh-md: 0 4px 10px rgba(18,23,38,.05), 0 14px 32px rgba(18,23,38,.09);
+  --sh-lg: 0 10px 26px rgba(18,23,38,.09), 0 28px 56px rgba(18,23,38,.12);
+  --ring:  0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+
+  /* Backward compat aliases used by shadcn/ui components */
+  --background:        210 20% 97%;
+  --foreground:        220 20% 10%;
+  --card:              0 0% 100%;
+  --card-foreground:   220 20% 10%;
+  --card-border:       0 0% 100%;
+  --popover:           0 0% 100%;
+  --popover-foreground: 220 20% 10%;
+  --popover-border:    213 17% 90%;
+  --muted:             215 18% 93%;
+  --muted-foreground:  220 9% 52%;
+  --input:             213 17% 90%;
+  --ring-compat:       217 100% 39%;
+  --radius:            0.625rem;
+}
+
+/* ============================================================
+   Tailwind v4 theme registration
+   ============================================================ */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
+  /* Colors — Station tokens */
+  --color-bg:         var(--bg);
+  --color-surface:    var(--surface);
+  --color-surface-2:  var(--surface-2);
+  --color-surface-3:  var(--surface-3);
+  --color-border-st:  var(--border);
+  --color-border-strong: var(--border-strong);
 
-  --color-card: hsl(var(--card));
+  --color-text:       var(--text);
+  --color-text-2:     var(--text-2);
+  --color-text-3:     var(--text-3);
+  --color-heading:    var(--heading);
+
+  --color-primary:    var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-accent:     var(--accent);
+  --color-on-accent:  var(--on-accent);
+  --color-accent-wash: var(--accent-wash);
+
+  --color-success:    var(--success);
+  --color-warning:    var(--warning);
+  --color-danger:     var(--danger);
+  --color-info:       var(--info);
+
+  --color-cat-arts:        var(--cat-arts);
+  --color-cat-athletics:   var(--cat-athletics);
+  --color-cat-environment: var(--cat-environment);
+  --color-cat-stem:        var(--cat-stem);
+  --color-cat-academic:    var(--cat-academic);
+  --color-cat-culture:     var(--cat-culture);
+  --color-cat-service:     var(--cat-service);
+
+  /* Shadcn/ui compat colors (hsl-based) */
+  --color-background:  hsl(var(--background));
+  --color-foreground:  hsl(var(--foreground));
+  --color-border:      var(--border);
+  --color-input:       hsl(var(--input));
+
+  --color-card:        hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
-  --color-card-border: hsl(var(--card-border));
-
-  --color-popover: hsl(var(--popover));
+  --color-popover:     hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-popover-border: hsl(var(--popover-border));
 
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-primary-border: var(--primary-border);
-
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-secondary-border: var(--secondary-border);
-
-  --color-muted: hsl(var(--muted));
+  --color-secondary:   var(--text-2);
+  --color-secondary-foreground: #ffffff;
+  --color-muted:       hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-muted-border: var(--muted-border);
 
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-accent-border: var(--accent-border);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: #ffffff;
 
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-destructive-border: var(--destructive-border);
+  /* Material Design compat tokens used in older components */
+  --color-on-surface:  var(--text);
+  --color-surface-container-lowest: var(--surface);
+  --color-surface-container-low:    var(--surface-2);
+  --color-surface-container:        var(--surface-2);
+  --color-surface-container-high:   var(--surface-3);
+  --color-outline-variant:          var(--border);
+  --color-primary-container:        color-mix(in oklab, var(--primary) 60%, transparent);
+  --color-error:       var(--danger);
 
-  --font-sans: var(--app-font-sans);
-  --font-serif: var(--app-font-serif);
-  --font-mono: var(--app-font-mono);
-  --font-lexend: 'Lexend', sans-serif;
+  /* Fonts */
+  --font-sans:    var(--font-body);
+  --font-mono:    var(--font-mono);
+  --font-display: var(--font-display);
+  --font-lexend:  var(--font-display);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Border radius */
+  --radius-xs:   var(--r-xs);
+  --radius-sm:   calc(var(--radius) - 4px);
+  --radius-md:   calc(var(--radius) - 2px);
+  --radius-lg:   var(--radius);
+  --radius-xl:   calc(var(--radius) + 4px);
+  --radius-pill: var(--r-pill);
 
-  /* Material Design 3 surface & role tokens */
-  --color-on-surface: hsl(var(--foreground));
-  --color-surface: hsl(0 0% 100%);
-  --color-surface-container-lowest: hsl(0 0% 100%);
-  --color-surface-container-low: hsl(210 20% 97%);
-  --color-surface-container: hsl(210 20% 95%);
-  --color-surface-container-high: hsl(210 20% 92%);
-  --color-primary-container: hsl(217 100% 75%);
-  --color-on-primary-container: hsl(217 100% 15%);
-  --color-tertiary-container: hsl(267 30% 65%);
-  --color-on-tertiary: hsl(0 0% 100%);
-  --color-on-tertiary-container: hsl(267 30% 15%);
-  --color-outline-variant: hsl(226 8% 80%);
-  --color-error: hsl(var(--destructive));
-  --color-on-error: hsl(0 0% 100%);
+  /* Shadows */
+  --shadow-sh-sm: var(--sh-sm);
+  --shadow-sh:    var(--sh);
+  --shadow-sh-md: var(--sh-md);
+  --shadow-sh-lg: var(--sh-lg);
 }
 
-:root {
-  --background: 210 20% 98%; /* #F7F9FB */
-  --foreground: 200 10% 12%; /* #191C1E */
-
-  --border: 226 8% 50%; /* outline #737686 */
-
-  --card: 0 0% 100%; /* #FFFFFF */
-  --card-foreground: 200 10% 12%;
-  --card-border: 0 0% 100%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 200 10% 12%;
-  --popover-border: 210 20% 90%;
-
-  --primary: 217 100% 39%; /* #004AC6 */
-  --primary-foreground: 0 0% 100%;
-
-  --secondary: 224 15% 40%; /* #565E74 */
-  --secondary-foreground: 0 0% 100%;
-
-  --muted: 210 20% 96%;
-  --muted-foreground: 226 8% 50%;
-
-  --accent: 210 20% 96%;
-  --accent-foreground: 217 100% 39%;
-
-  --destructive: 0 74% 42%; /* #BA1A1A */
-  --destructive-foreground: 0 0% 100%;
-
-  --input: 210 20% 92%;
-  --ring: 217 100% 39%;
-
-  --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: Menlo, monospace;
-  
-  --radius: 1rem;
-
-  --shadow-sm: 0px 2px 8px rgba(15,23,42,0.02);
-  --shadow: 0px 10px 30px rgba(15,23,42,0.04);
-  --shadow-md: 0px 10px 30px rgba(15,23,42,0.04);
-  --shadow-lg: 0px 20px 40px rgba(15,23,42,0.06);
-}
-
-.dark {
-  --background: 210 20% 98%;
-  --foreground: 200 10% 12%;
-  --border: 226 8% 50%;
-  --card: 0 0% 100%;
-  --card-foreground: 200 10% 12%;
-  --card-border: 0 0% 100%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 200 10% 12%;
-  --popover-border: 210 20% 90%;
-  --primary: 217 100% 39%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 224 15% 40%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 210 20% 96%;
-  --muted-foreground: 226 8% 50%;
-  --accent: 210 20% 96%;
-  --accent-foreground: 217 100% 39%;
-  --destructive: 0 74% 42%;
-  --destructive-foreground: 0 0% 100%;
-  --input: 210 20% 92%;
-  --ring: 217 100% 39%;
-}
-
+/* ============================================================
+   Base layer
+   ============================================================ */
 @layer base {
   * {
-    @apply border-border;
+    box-sizing: border-box;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    margin: 0;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Lexend', sans-serif;
+    font-family: var(--font-display);
+    color: var(--heading);
+    margin: 0;
+    letter-spacing: -0.01em;
   }
+
+  p { margin: 0; }
+  a { color: var(--primary); }
 }
 
-/**
- * Using the elevate system.
- * Automatic contrast adjustment.
- *
- * <element className="hover-elevate" />
- * <element className="active-elevate-2" />
- *
- * // Using the tailwind utility when a data attribute is "on"
- * <element className="toggle-elevate data-[state=on]:toggle-elevated" />
- * // Or manually controlling the toggle state
- * <element className="toggle-elevate toggle-elevated" />
- *
- * Elevation systems have to handle many states.
- * - not-hovered, vs. hovered vs. active  (three mutually exclusive states)
- * - toggled or not
- * - focused or not (this is not handled with these utilities)
- *
- * Even without handling focused or not, this is six possible combinations that
- * need to be distinguished from eachother visually.
- */
+/* ============================================================
+   Utility layer
+   ============================================================ */
 @layer utilities {
-
-  /* Hide ugly search cancel button in Chrome until we can style it properly */
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }
 
-  /* Placeholder styling for contentEditable div */
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
-    color: hsl(var(--muted-foreground));
+    color: var(--text-3);
     pointer-events: none;
   }
 
-  /* .no-default-hover-elevate/no-default-active-elevate is an escape hatch so consumers of
-   * buttons/badges can remove the automatic brightness adjustment on interactions
-   * and program their own. */
-  .no-default-hover-elevate {}
+  /* Overline text style */
+  .t-overline {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
 
+  /* Category chip styles */
+  .chip-arts        { background-color: var(--cat-arts); color: #fff; }
+  .chip-athletics   { background-color: var(--cat-athletics); color: #fff; }
+  .chip-environment { background-color: var(--cat-environment); color: #fff; }
+  .chip-stem        { background-color: var(--cat-stem); color: #fff; }
+  .chip-academic    { background-color: var(--cat-academic); color: #fff; }
+  .chip-culture     { background-color: var(--cat-culture); color: #fff; }
+  .chip-service     { background-color: var(--cat-service); color: #fff; }
+
+  /* Sidebar accent indicator */
+  .sidebar-active::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 9px;
+    bottom: 9px;
+    width: 4px;
+    border-radius: 0 3px 3px 0;
+    background: var(--accent);
+  }
+
+  /* Shadcn/ui elevation utilities (backward compat) */
+  .no-default-hover-elevate {}
   .no-default-active-elevate {}
 
-
-  /**
-   * Toggleable backgrounds go behind the content. Hoverable/active goes on top.
-   * This way they can stack/compound. Both will overlap the parent's borders!
-   * So borders will be automatically adjusted both on toggle, and hover/active,
-   * and they will be compounded.
-   */
   .toggle-elevate::before,
   .toggle-elevate-2::before {
     content: "";
     pointer-events: none;
     position: absolute;
     inset: 0px;
-    /*border-radius: inherit;   match rounded corners */
     border-radius: inherit;
     z-index: -1;
-    /* sits behind content but above backdrop */
   }
 
   .toggle-elevate.toggle-elevated::before {
-    background-color: var(--elevate-2);
+    background-color: rgba(0,0,0,0.05);
   }
 
-  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
-  .border.toggle-elevate::before {
-    inset: -1px;
-  }
-
-  /* Does not work on elements with overflow:hidden! */
   .hover-elevate:not(.no-default-hover-elevate),
-  .active-elevate:not(.no-default-active-elevate),
-  .hover-elevate-2:not(.no-default-hover-elevate),
-  .active-elevate-2:not(.no-default-active-elevate) {
+  .active-elevate:not(.no-default-active-elevate) {
     position: relative;
     z-index: 0;
   }
 
   .hover-elevate:not(.no-default-hover-elevate)::after,
-  .active-elevate:not(.no-default-active-elevate)::after,
-  .hover-elevate-2:not(.no-default-hover-elevate)::after,
-  .active-elevate-2:not(.no-default-active-elevate)::after {
+  .active-elevate:not(.no-default-active-elevate)::after {
     content: "";
     pointer-events: none;
     position: absolute;
     inset: 0px;
-    /*border-radius: inherit;   match rounded corners */
     border-radius: inherit;
     z-index: 999;
-    /* sits in front of content */
   }
 
-  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after {
+    background-color: rgba(0,0,0,0.04);
+  }
   .active-elevate:active:not(.no-default-active-elevate)::after {
-    background-color: var(--elevate-1);
-  }
-
-  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
-  .active-elevate-2:active:not(.no-default-active-elevate)::after {
-    background-color: var(--elevate-2);
-  }
-
-  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
-  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
-  .border.active-elevate:not(.no-active-interaction-elevate)::after,
-  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
-  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
-  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
-    inset: -1px;
+    background-color: rgba(0,0,0,0.08);
   }
 }

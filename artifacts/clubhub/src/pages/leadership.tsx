@@ -1,15 +1,14 @@
 import { useState, useMemo } from "react";
-import { useGetLeadingClubs, useDeleteClub } from "@workspace/api-client-react";
-import { Button } from "@/components/ui/button";
+import { useGetLeadingClubs, useDeleteClub, getGetLeadingClubsQueryKey, getGetClubsQueryKey } from "@workspace/api-client-react";
 import { getClubColor } from "@/lib/color-utils";
 import { ClubDetailModal } from "@/components/ClubDetailModal";
 import { CreateClubModal } from "@/components/CreateClubModal";
 import { EditClubModal } from "@/components/EditClubModal";
 import { ManageEventsModal } from "@/components/ManageEventsModal";
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetLeadingClubsQueryKey, getGetClubsQueryKey } from "@workspace/api-client-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function LeadershipPage() {
   const { data, isLoading } = useGetLeadingClubs();
@@ -24,182 +23,226 @@ export default function LeadershipPage() {
 
   const clubs = useMemo(() => (data?.success ? data.clubs : []), [data]);
 
-  const deleteTargetClub = useMemo(
-    () => clubs.find(c => c.id === deleteConfirmId) ?? null,
-    [clubs, deleteConfirmId]
-  );
+  const totalMembers = clubs.reduce((acc, c) => acc + c.member_count, 0);
+  const upcomingEvents = clubs.reduce((acc, c) => acc + c.upcoming_events_count, 0);
+
+  const deleteTargetClub = clubs.find(c => c.id === deleteConfirmId) ?? null;
 
   const handleDelete = () => {
     if (!deleteConfirmId) return;
     deleteMutation.mutate({ id: deleteConfirmId }, {
       onSuccess: () => {
-        toast.success("Club deleted successfully");
+        toast.success("Club deleted");
         queryClient.invalidateQueries({ queryKey: getGetLeadingClubsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
         setDeleteConfirmId(null);
       },
-      onError: (err) => {
+      onError: err => {
         toast.error(err.message || "Failed to delete club");
         setDeleteConfirmId(null);
-      }
+      },
     });
   };
 
+  const statStyle: React.CSSProperties = {
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--r-md)",
+    padding: "16px 18px",
+    position: "relative",
+    overflow: "hidden",
+  };
+
+  const STAT_COLORS = ["var(--cat-academic)", "var(--cat-stem)", "var(--cat-arts)", "var(--cat-service)"];
+
   return (
-    <div className="max-w-5xl mx-auto px-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 16 }}>
         <div>
-          <h1 className="text-3xl font-bold font-lexend text-on-surface">Leadership Hub</h1>
-          <p className="text-secondary mt-1">Manage your clubs and events</p>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 30, letterSpacing: "-0.025em", color: "var(--heading)", marginBottom: 4 }}>
+            Leadership Hub
+          </h1>
+          <div style={{ fontSize: 13, color: "var(--text-3)" }}>
+            Managing {clubs.length} {clubs.length === 1 ? "club" : "clubs"}
+          </div>
         </div>
-        <Button
-          className="bg-gradient-to-r from-primary to-primary-container text-white rounded-full px-6 py-6 shadow-lg shadow-primary/20 hover:opacity-90"
+        <button
           onClick={() => setIsCreateModalOpen(true)}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "8px 14px", background: "var(--accent)", color: "#fff",
+            border: "none", borderRadius: "var(--r-sm)", fontFamily: "var(--font-body)",
+            fontWeight: 600, fontSize: 13, cursor: "pointer", flexShrink: 0,
+          }}
         >
-          <span className="material-symbols-outlined mr-2">add</span>
-          Create New Club
-        </Button>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>add</span>
+          Create club
+        </button>
       </div>
 
-      {(isLoading || clubs.length > 0) && <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="md:col-span-2 bg-gradient-to-br from-primary to-tertiary-container rounded-3xl p-8 text-white flex flex-col justify-center relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-2xl font-bold mb-2">Welcome to your Hub</h2>
-            <p className="text-white/80 max-w-md">As a club leader, you are the heartbeat of our campus. Use this space to organize meetings, update details, and grow your community.</p>
+      {/* Stats row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+        {[
+          { lbl: "Clubs Led", num: clubs.length, sub: "President", c: STAT_COLORS[0] },
+          { lbl: "Total Members", num: totalMembers, sub: "across all clubs", c: STAT_COLORS[1] },
+          { lbl: "Upcoming Events", num: upcomingEvents, sub: "next 30 days", c: STAT_COLORS[2] },
+          { lbl: "Avg. Attendance", num: "0%", sub: "placeholder — not tracked", c: STAT_COLORS[3] },
+        ].map(({ lbl, num, sub, c }) => (
+          <div key={lbl} style={{ ...statStyle }}>
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: c }} />
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-3)" }}>{lbl}</div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 30, color: "var(--heading)", lineHeight: 1.1, marginTop: 6 }}>{num}</div>
+            <div style={{ fontSize: 12, color: "var(--text-2)", marginTop: 2 }}>{sub}</div>
           </div>
-          <span className="material-symbols-outlined absolute -bottom-10 -right-4 text-[180px] text-white/10 z-0">stars</span>
-        </div>
-        <div className="bg-white rounded-3xl p-8 shadow-sm flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center mb-4">
-            <span className="material-symbols-outlined text-3xl">event_upcoming</span>
-          </div>
-          <h3 className="text-4xl font-bold text-on-surface mb-1">
-            {clubs.reduce((acc, club) => acc + club.upcoming_events_count, 0)}
-          </h3>
-          <p className="text-secondary font-medium">Upcoming Events</p>
-        </div>
-      </div>}
+        ))}
+      </div>
 
-      <h2 className="text-xl font-semibold mb-6">Clubs You Lead</h2>
+      {/* Section heading */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "4px 0 14px" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, letterSpacing: "-0.01em", color: "var(--heading)" }}>
+          Clubs you lead
+        </h2>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-3)", letterSpacing: "0.06em" }}>
+          {clubs.length} CLUBS
+        </span>
+      </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-6 animate-pulse">
-          {[1, 2].map(i => <div key={i} className="h-48 bg-gray-200 rounded-3xl"></div>)}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+          {[1, 2].map(i => <div key={i} style={{ height: 180, background: "var(--surface-2)", borderRadius: "var(--r-md)" }} />)}
         </div>
       ) : clubs.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-3xl shadow-sm border border-dashed border-outline-variant/30">
-          <span className="material-symbols-outlined text-5xl text-secondary opacity-40 mb-4">group_off</span>
-          <h3 className="text-xl font-semibold mb-2">You aren't a leader of any clubs yet</h3>
-          <p className="text-secondary mb-6">Start a new community by creating a club.</p>
-          <Button
-            className="bg-primary text-white rounded-full px-6"
+        <div style={{
+          background: "var(--surface)",
+          border: "1px dashed var(--border-strong)",
+          borderRadius: "var(--r-md)",
+          padding: "48px 24px",
+          textAlign: "center",
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 40, color: "var(--text-3)", display: "block", marginBottom: 12 }}>group_off</span>
+          <p style={{ fontWeight: 600, color: "var(--heading)", marginBottom: 6 }}>You're not a leader of any clubs yet</p>
+          <p style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 16 }}>Create a new club to get started.</p>
+          <button
             onClick={() => setIsCreateModalOpen(true)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--r-sm)", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
           >
-            Create New Club
-          </Button>
+            Create club
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {clubs.map(club => (
-            <div key={club.id} className="bg-white rounded-3xl shadow-sm border border-outline-variant/20 overflow-hidden flex flex-col">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+          {clubs.map(club => {
+            const color = getClubColor(club.id);
+            return (
               <div
-                className="p-6 cursor-pointer hover:bg-[#F9FAFB] transition-colors flex-grow"
-                onClick={() => setSelectedClubId(club.id)}
+                key={club.id}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "stretch",
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderLeft: `4px solid ${color}`,
+                  borderRadius: "var(--r-md)",
+                  overflow: "hidden",
+                }}
               >
-                <div className="flex items-start gap-4">
-                  <div className={`w-16 h-16 rounded-2xl flex-shrink-0 flex items-center justify-center text-white font-bold text-2xl ${getClubColor(club.id)}`}>
+                {/* Card body */}
+                <div
+                  style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "16px 18px", cursor: "pointer" }}
+                  onClick={() => setSelectedClubId(club.id)}
+                >
+                  <div style={{ width: 52, height: 52, borderRadius: "var(--r-md)", background: color, color: "#fff", display: "grid", placeItems: "center", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 22, flexShrink: 0 }}>
                     {club.profile_photo ? (
-                      <img src={club.profile_photo} alt={club.name} className="w-full h-full object-cover rounded-2xl" />
-                    ) : (
-                      club.initial
-                    )}
+                      <img src={club.profile_photo} alt={club.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "var(--r-md)" }} />
+                    ) : club.initial}
                   </div>
-                  <div className="flex-grow">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-xl text-on-surface line-clamp-1">{club.name}</h3>
-                      <span className="bg-tertiary-container/10 text-tertiary-container text-xs px-2 py-1 rounded-md font-medium whitespace-nowrap">
-                        {club.user_role}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: "var(--heading)" }}>{club.name}</span>
+                      <span style={{
+                        fontSize: 10.5, fontWeight: 700, padding: "3px 8px",
+                        borderRadius: "var(--r-pill)",
+                        background: `color-mix(in oklab, ${color} 16%, var(--surface))`,
+                        color: `color-mix(in oklab, ${color} 72%, var(--text))`,
+                        border: `1px solid color-mix(in oklab, ${color} 26%, transparent)`,
+                        textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap",
+                      }}>
+                        {club.user_role || "President"}
                       </span>
                     </div>
-                    <p className="text-secondary text-sm mt-1 line-clamp-2">{club.description}</p>
+                    <div style={{ fontSize: 12.5, color: "var(--text-2)", margin: "4px 0 10px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
+                      {club.description}
+                    </div>
+                    <div style={{ display: "flex", gap: 14 }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontFamily: "var(--font-mono)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>group</span>
+                        {club.member_count} members
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontFamily: "var(--font-mono)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>event</span>
+                        {club.upcoming_events_count} events
+                      </span>
+                      {club.default_day && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, fontFamily: "var(--font-mono)", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>schedule</span>
+                          {club.default_day}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex gap-6 mt-6 pt-6 border-t border-outline-variant/20">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-secondary font-medium uppercase tracking-wider">Members</span>
-                    <span className="font-semibold text-lg">{club.member_count}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs text-secondary font-medium uppercase tracking-wider">Events</span>
-                    <span className="font-semibold text-lg">{club.upcoming_events_count}</span>
-                  </div>
+                {/* Card footer */}
+                <div style={{ display: "flex", gap: 8, padding: "12px 18px", borderTop: "1px solid var(--border)", background: "var(--surface-2)" }}>
+                  <button
+                    onClick={() => setEditClubId(club.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12.5, color: "var(--text-2)", cursor: "pointer" }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>edit</span>
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setManageEventsClubId(club.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "var(--primary)", border: "none", borderRadius: "var(--r-sm)", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12.5, color: "#fff", cursor: "pointer" }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>event</span>
+                    Schedule event
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirmId(club.id)}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, background: "none", border: "none", borderRadius: "var(--r-sm)", color: "var(--danger)", cursor: "pointer", marginLeft: "auto" }}
+                    aria-label={`Delete ${club.name}`}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 19 }}>delete</span>
+                  </button>
                 </div>
               </div>
-
-              <div className="bg-[#F7F9FB] p-4 flex gap-2 justify-end border-t border-outline-variant/20">
-                <Button
-                  variant="outline"
-                  className="bg-white hover:bg-surface-container rounded-xl text-secondary"
-                  onClick={() => setEditClubId(club.id)}
-                >
-                  <span className="material-symbols-outlined text-[18px] mr-2">edit</span>
-                  Edit Details
-                </Button>
-                <Button
-                  className="bg-primary hover:bg-primary-container text-white rounded-xl shadow-sm"
-                  onClick={() => setManageEventsClubId(club.id)}
-                >
-                  <span className="material-symbols-outlined text-[18px] mr-2">event</span>
-                  Schedule Event
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="text-error hover:bg-error/10 hover:text-error rounded-xl w-10 p-0"
-                  onClick={() => setDeleteConfirmId(club.id)}
-                  aria-label={`Delete ${club.name}`}
-                >
-                  <span className="material-symbols-outlined text-[20px]">delete</span>
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {selectedClubId && (
-        <ClubDetailModal
-          clubId={selectedClubId}
-          onClose={() => setSelectedClubId(null)}
-        />
-      )}
-
+      {/* Modals */}
+      {selectedClubId && <ClubDetailModal clubId={selectedClubId} onClose={() => setSelectedClubId(null)} />}
       {isCreateModalOpen && (
         <CreateClubModal
           onClose={() => setIsCreateModalOpen(false)}
-          onCreated={(clubId) => {
-            setIsCreateModalOpen(false);
-            setManageEventsClubId(clubId);
-          }}
+          onCreated={clubId => { setIsCreateModalOpen(false); setManageEventsClubId(clubId); }}
         />
       )}
+      {editClubId && <EditClubModal clubId={editClubId} onClose={() => setEditClubId(null)} />}
+      {manageEventsClubId && <ManageEventsModal clubId={manageEventsClubId} onClose={() => setManageEventsClubId(null)} />}
 
-      {editClubId && (
-        <EditClubModal clubId={editClubId} onClose={() => setEditClubId(null)} />
-      )}
-
-      {manageEventsClubId && (
-        <ManageEventsModal clubId={manageEventsClubId} onClose={() => setManageEventsClubId(null)} />
-      )}
-
-      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+      <Dialog open={!!deleteConfirmId} onOpenChange={open => !open && setDeleteConfirmId(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Club</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-on-surface">{deleteTargetClub?.name ?? "this club"}</span>?
-              {" "}This cannot be undone. All members will be unenrolled and all events will be deleted.
+              <span className="font-semibold">{deleteTargetClub?.name ?? "this club"}</span>?
+              {" "}This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4 gap-2 sm:gap-0">

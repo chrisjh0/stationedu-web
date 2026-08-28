@@ -1,5 +1,4 @@
-import { db, eventsTable, clubsTable, enrollmentsTable } from "@workspace/db";
-import { eq, and, gte, lte, asc } from "drizzle-orm";
+import { supabase } from "../lib/supabase.js";
 import { ok, err, type ServiceResult } from "./types.js";
 
 export interface CalendarEvent {
@@ -42,40 +41,36 @@ export async function getCalendarEvents(
     endDate = `${y}-${String(m).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
   }
 
-  const events = await db
-    .select({
-      id: eventsTable.id,
-      club_id: eventsTable.club_id,
-      club_name: clubsTable.name,
-      title: eventsTable.title,
-      event_date: eventsTable.event_date,
-      event_time: eventsTable.event_time,
-      location: eventsTable.location,
-      description: eventsTable.description,
-    })
-    .from(eventsTable)
-    .innerJoin(clubsTable, eq(eventsTable.club_id, clubsTable.id))
-    .where(and(gte(eventsTable.event_date, startDate), lte(eventsTable.event_date, endDate)))
-    .orderBy(asc(eventsTable.event_date), asc(eventsTable.event_time));
+  const { data: events, error: eventsError } = await supabase
+    .from("events")
+    .select("id, club_id, title, event_date, event_time, location, description, clubs!inner(name)")
+    .gte("event_date", startDate)
+    .lte("event_date", endDate)
+    .order("event_date", { ascending: true })
+    .order("event_time", { ascending: true });
 
-  const enrollments = await db
-    .select()
-    .from(enrollmentsTable)
-    .where(eq(enrollmentsTable.user_id, userId));
+  if (eventsError) throw eventsError;
 
-  const enrolledClubIds = new Set(enrollments.map((e) => e.club_id));
+  const { data: enrollments, error: enrollError } = await supabase
+    .from("enrollments")
+    .select("club_id")
+    .eq("user_id", userId);
+
+  if (enrollError) throw enrollError;
+
+  const enrolledClubIds = new Set((enrollments ?? []).map((e: { club_id: number }) => e.club_id));
 
   return ok(
-    events.map((e) => ({
-      id: e.id,
-      club_id: e.club_id,
-      club_name: e.club_name,
-      title: e.title,
-      event_date: e.event_date,
-      event_time: e.event_time,
-      location: e.location,
-      description: e.description,
-      is_enrolled: enrolledClubIds.has(e.club_id),
+    (events ?? []).map((e: Record<string, unknown>) => ({
+      id: e.id as number,
+      club_id: e.club_id as number,
+      club_name: (e.clubs as { name: string }).name,
+      title: e.title as string,
+      event_date: e.event_date as string,
+      event_time: e.event_time as string,
+      location: e.location as string,
+      description: e.description as string,
+      is_enrolled: enrolledClubIds.has(e.club_id as number),
     }))
   );
 }
