@@ -246,13 +246,12 @@ export function NavBar() {
 
       {/* ── MOBILE TOP BAR — hidden on desktop ── */}
       <header
-        className="md:hidden"
+        className="flex md:hidden"
         style={{
           position: "fixed",
           top: 0, left: 0, right: 0,
           height: 56,
           background: "#232E54",
-          display: "flex",
           alignItems: "center",
           padding: "0 4px 0 14px",
           zIndex: 100,
@@ -312,7 +311,7 @@ export function NavBar() {
       <div
         id="mobile-nav-drawer"
         ref={drawerRef}
-        className="md:hidden"
+        className="flex md:hidden"
         role="dialog"
         aria-label="Navigation menu"
         aria-modal="true"
@@ -321,7 +320,6 @@ export function NavBar() {
           top: 0, left: 0, bottom: 0,
           width: 280,
           background: "#232E54",
-          display: "flex",
           flexDirection: "column",
           padding: "0 14px 20px",
           zIndex: 201,
