@@ -55,15 +55,10 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     <AuthGuard>
       <div className="flex min-h-screen">
         <NavBar />
-        {/* Main content — offset by sidebar width on desktop */}
-        <div
-          className="flex-1 flex flex-col min-h-screen"
-          style={{ marginLeft: 0 }}
-        >
-          <style>{`@media (min-width: 768px) { .sidebar-offset { margin-left: 180px; } }`}</style>
+        <div className="flex-1 flex flex-col min-h-screen">
           <main
-            className="sidebar-offset flex-1"
-            style={{ background: "var(--bg)", padding: "28px 32px", minHeight: "100vh" }}
+            className="sidebar-offset app-main flex-1"
+            style={{ background: "var(--bg)", minHeight: "100vh" }}
           >
             <ErrorBoundary>
               <Component />
@@ -81,10 +76,9 @@ function AdminRoute() {
       <div className="flex min-h-screen">
         <NavBar />
         <div className="flex-1 flex flex-col min-h-screen">
-          <style>{`@media (min-width: 768px) { .sidebar-offset { margin-left: 180px; } }`}</style>
           <main
-            className="sidebar-offset flex-1"
-            style={{ background: "var(--bg)", padding: "28px 32px", minHeight: "100vh" }}
+            className="sidebar-offset app-main flex-1"
+            style={{ background: "var(--bg)", minHeight: "100vh" }}
           >
             <ErrorBoundary>
               <AdminGuard component={AdminPage} />

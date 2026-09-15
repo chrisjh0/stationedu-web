@@ -206,6 +206,161 @@
 /* ============================================================
    Utility layer
    ============================================================ */
+/* ============================================================
+   Layout: sidebar + main content
+   ============================================================ */
+
+/* Desktop: sidebar offset */
+@media (min-width: 768px) {
+  .sidebar-offset { margin-left: 180px; }
+}
+
+/* Default padding for app main content */
+.app-main { padding: 28px 32px; }
+
+/* Mobile: offset below the fixed top bar */
+@media (max-width: 767px) {
+  .app-main { padding: 76px 16px 28px; }
+}
+
+/* ============================================================
+   Mobile modal: full-screen on small screens
+   ============================================================ */
+@media (max-width: 767px) {
+  .modal-fullscreen-mobile {
+    width: 100% !important;
+    height: 100dvh !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: translate(0, 0) !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* ============================================================
+   Page-specific responsive layouts
+   ============================================================ */
+
+/* Stat card grids: 4-column → 2-column on mobile */
+@media (max-width: 767px) {
+  .stat-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Club/card grids: 2-column → 1-column on mobile */
+@media (max-width: 767px) {
+  .club-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Analytics 2-column panels: stack on mobile */
+@media (max-width: 767px) {
+  .analytics-row-split {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Directory list table: hide Meets + Members columns on narrow screens */
+@media (max-width: 639px) {
+  .dir-table-header,
+  .dir-table-row {
+    grid-template-columns: 1fr auto !important;
+  }
+  /* Hide columns 2, 3, 4 (Category, Meets, Members) — show only Club + Action */
+  .dir-col-category,
+  .dir-col-meets,
+  .dir-col-members {
+    display: none !important;
+  }
+}
+
+/* Directory grid: 2-column → 1-column on mobile */
+@media (max-width: 639px) {
+  .dir-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Calendar week strip: horizontally scrollable on mobile */
+.cal-week-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  /* hide scrollbar visually but keep functional */
+  scrollbar-width: none;
+}
+.cal-week-scroll::-webkit-scrollbar { display: none; }
+
+@media (max-width: 767px) {
+  .cal-week-grid {
+    min-width: 480px;
+  }
+  .cal-week-grid > * {
+    scroll-snap-align: start;
+  }
+  /* Month view calendar grid: keep all 7 columns but shrink cells */
+  .cal-month-grid {
+    font-size: 11px;
+  }
+  .cal-month-grid > div[role="button"] {
+    min-height: 60px !important;
+  }
+}
+
+/* Settings: side-by-side → stacked on mobile */
+@media (max-width: 767px) {
+  .settings-card {
+    flex-direction: column !important;
+  }
+  .settings-rail {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 10px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 4px !important;
+    scrollbar-width: none !important;
+  }
+  .settings-rail::-webkit-scrollbar { display: none !important; }
+  .settings-rail button {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+  .settings-content {
+    padding: 20px 18px !important;
+  }
+}
+
+/* Event form grid: 3-column → 1-column on mobile */
+@media (max-width: 767px) {
+  .event-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Leadership hub card footer buttons: allow wrapping on mobile */
+@media (max-width: 767px) {
+  .club-action-row {
+    flex-wrap: wrap !important;
+  }
+}
+
+/* Ensure no page content overflows viewport horizontally */
+@media (max-width: 767px) {
+  .app-main > * {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
 @layer utilities {
   :focus-visible {
     outline: 2px solid var(--accent);

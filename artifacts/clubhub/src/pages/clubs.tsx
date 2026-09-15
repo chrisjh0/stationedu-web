@@ -97,7 +97,7 @@ export default function ClubsPage() {
       </div>
 
       {/* Stats row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+      <div className="stat-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
         {[
           { lbl: "Memberships", num: enrolledClubs.length, sub: `${enrolledClubs.filter(c => c.is_leader).length} as leader`, c: STAT_COLORS[0] },
           { lbl: "Events This Week", num: eventsThisWeek, sub: "enrolled clubs", c: STAT_COLORS[1] },
@@ -141,7 +141,7 @@ export default function ClubsPage() {
           </Link>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+        <div className="club-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
           {enrolledClubs.map(club => {
             const color = getClubColor(club.category);
             return (

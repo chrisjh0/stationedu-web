@@ -262,7 +262,7 @@ export default function DirectoryPage() {
         /* ── LIST VIEW ── */
         <div style={cardStyle}>
           {/* Table header */}
-          <div style={{
+          <div className="dir-table-header" style={{
             display: "grid",
             gridTemplateColumns: "2.6fr 1fr 1.1fr 0.7fr auto",
             alignItems: "center",
@@ -271,8 +271,14 @@ export default function DirectoryPage() {
             background: "var(--surface-2)",
             borderBottom: "1px solid var(--border)",
           }}>
-            {["Club", "Category", "Meets", "Members", ""].map((h, i) => (
-              <span key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-3)" }}>{h}</span>
+            {[
+              { label: "Club", cls: "" },
+              { label: "Category", cls: "dir-col-category" },
+              { label: "Meets", cls: "dir-col-meets" },
+              { label: "Members", cls: "dir-col-members" },
+              { label: "", cls: "" },
+            ].map(({ label, cls }, i) => (
+              <span key={i} className={cls} style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-3)" }}>{label}</span>
             ))}
           </div>
 
@@ -281,6 +287,7 @@ export default function DirectoryPage() {
             return (
               <div
                 key={club.id}
+                className="dir-table-row"
                 onClick={() => setSelectedClubId(club.id)}
                 style={{
                   display: "grid",
@@ -314,7 +321,7 @@ export default function DirectoryPage() {
                 </div>
 
                 {/* Category */}
-                <div>
+                <div className="dir-col-category">
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: 5,
                     fontSize: 10.5, fontWeight: 700, padding: "4px 9px",
@@ -327,13 +334,13 @@ export default function DirectoryPage() {
                 </div>
 
                 {/* Meets */}
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--text-2)", fontFamily: "var(--font-mono)" }}>
+                <div className="dir-col-meets" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--text-2)", fontFamily: "var(--font-mono)" }}>
                   <span className="material-symbols-outlined" style={{ fontSize: 15, color: "var(--text-3)" }}>schedule</span>
                   {club.default_day || "—"}
                 </div>
 
                 {/* Members */}
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--text-2)", fontFamily: "var(--font-mono)" }}>
+                <div className="dir-col-members" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--text-2)", fontFamily: "var(--font-mono)" }}>
                   <span className="material-symbols-outlined" style={{ fontSize: 15, color: "var(--text-3)" }}>group</span>
                   {club.member_count}
                 </div>
@@ -378,7 +385,7 @@ export default function DirectoryPage() {
         </div>
       ) : (
         /* ── GRID VIEW ── */
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+        <div className="dir-grid club-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
           {filteredClubs.map(club => {
             const color = getClubColor(club.category);
             return (

@@ -71,7 +71,7 @@ export function ManageEventsModal({ clubId, onClose }: { clubId: number; onClose
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="p-0 overflow-hidden border-none gap-0"
+        className="p-0 overflow-hidden border-none gap-0 modal-fullscreen-mobile"
         style={{ maxWidth: 600, maxHeight: "88vh", display: "flex", flexDirection: "column", borderRadius: "var(--r-lg)", boxShadow: "var(--sh-lg)" }}
       >
         <DialogTitle className="sr-only">Schedule an event</DialogTitle>
@@ -99,7 +99,7 @@ export function ManageEventsModal({ clubId, onClose }: { clubId: number; onClose
             <label style={labelStyle}>Event Title</label>
             <input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. General Meeting" />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+          <div className="event-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
             <div>
               <label style={labelStyle}>Date</label>
               <input type="date" style={inputStyle} value={date} onChange={e => setDate(e.target.value)} />

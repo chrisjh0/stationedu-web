@@ -191,7 +191,7 @@ export default function AdminPage() {
         ) : stats ? (
           <>
             {/* KPI row */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 14 }}>
+            <div className="stat-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 14 }}>
               {[
                 { lbl: "Total Clubs", num: stats.total_clubs, sub: "registered", c: STAT_COLORS[0] },
                 { lbl: "Students Participating", num: stats.students_participating, sub: "with at least 1 club", c: STAT_COLORS[1] },
@@ -213,7 +213,7 @@ export default function AdminPage() {
             </div>
 
             {/* Engagement Trend + Enrollment Rate */}
-            <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 14, marginBottom: 14 }}>
+            <div className="analytics-row-split" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 14, marginBottom: 14 }}>
               {/* Bar chart */}
               <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "18px 20px" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -269,7 +269,7 @@ export default function AdminPage() {
             </div>
 
             {/* Category Distribution + Participation by Grade */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+            <div className="analytics-row-split" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
               <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "18px 20px" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                   <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--heading)" }}>Category Distribution</h3>

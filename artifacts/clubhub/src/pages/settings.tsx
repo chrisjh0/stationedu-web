@@ -54,7 +54,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Settings card */}
-      <div style={{
+      <div className="settings-card" style={{
         display: "flex",
         background: "var(--surface)",
         border: "1px solid var(--border)",
@@ -63,7 +63,7 @@ export default function SettingsPage() {
         boxShadow: "var(--sh-sm)",
       }}>
         {/* Left rail */}
-        <div style={{
+        <div className="settings-rail" style={{
           width: 200,
           flexShrink: 0,
           borderRight: "1px solid var(--border)",
@@ -100,7 +100,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Right content */}
-        <div style={{ flex: 1, padding: "28px 32px" }}>
+        <div className="settings-content" style={{ flex: 1, padding: "28px 32px" }}>
           <SettingsForm settings={data.settings as Settings} activeTab={activeTab} />
         </div>
       </div>

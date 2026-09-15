@@ -83,7 +83,7 @@ export default function LeadershipPage() {
       </div>
 
       {/* Stats row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+      <div className="stat-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
         {[
           { lbl: "Clubs Led", num: clubs.length, sub: "President", c: STAT_COLORS[0] },
           { lbl: "Total Members", num: totalMembers, sub: "across all clubs", c: STAT_COLORS[1] },
@@ -110,7 +110,7 @@ export default function LeadershipPage() {
       </div>
 
       {isLoading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+        <div className="club-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
           {[1, 2].map(i => <div key={i} style={{ height: 180, background: "var(--surface-2)", borderRadius: "var(--r-md)" }} />)}
         </div>
       ) : clubs.length === 0 ? (
@@ -132,7 +132,7 @@ export default function LeadershipPage() {
           </button>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+        <div className="club-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
           {clubs.map(club => {
             const color = getClubColor(club.category);
             return (
@@ -196,7 +196,7 @@ export default function LeadershipPage() {
                 </div>
 
                 {/* Card footer */}
-                <div style={{ display: "flex", gap: 8, padding: "12px 18px", borderTop: "1px solid var(--border)", background: "var(--surface-2)" }}>
+                <div className="club-action-row" style={{ display: "flex", gap: 8, padding: "12px 18px", borderTop: "1px solid var(--border)", background: "var(--surface-2)" }}>
                   <button
                     onClick={() => setEditClubId(club.id)}
                     style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12.5, color: "var(--text-2)", cursor: "pointer" }}

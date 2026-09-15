@@ -62,7 +62,7 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
   return (
     <Dialog open={!!clubId} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="p-0 overflow-hidden border-none gap-0"
+        className="p-0 overflow-hidden border-none gap-0 modal-fullscreen-mobile"
         style={{ maxWidth: 560, borderRadius: "var(--r-lg)", boxShadow: "var(--sh-lg)" }}
       >
         <DialogTitle className="sr-only">{club?.name ?? "Club details"}</DialogTitle>

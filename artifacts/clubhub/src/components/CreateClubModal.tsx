@@ -71,7 +71,7 @@ export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto rounded-3xl p-8">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto rounded-3xl p-8 modal-fullscreen-mobile">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-2xl font-bold">Create New Club</DialogTitle>
         </DialogHeader>

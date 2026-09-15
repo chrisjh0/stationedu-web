@@ -35,7 +35,7 @@ export function EditClubModal({ clubId, onClose }: EditClubModalProps) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto rounded-3xl p-8">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto rounded-3xl p-8 modal-fullscreen-mobile">
         {!club ? (
           <div className="flex items-center justify-center h-48 text-secondary">Loading...</div>
         ) : (

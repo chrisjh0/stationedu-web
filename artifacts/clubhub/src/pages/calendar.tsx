@@ -154,12 +154,12 @@ export default function CalendarPage() {
       {/* ── DAY VIEW ── */}
       {viewMode === "daily" && (
         <>
-          {/* Week strip */}
-          <div style={{
+          {/* Week strip — horizontally scrollable on mobile */}
+          <div className="cal-week-scroll" style={{ marginBottom: 20 }}>
+          <div className="cal-week-grid" style={{
             display: "grid",
             gridTemplateColumns: "repeat(7, 1fr)",
             gap: 8,
-            marginBottom: 20,
           }}>
             {weekDays.map(day => {
               const isSelected = isSameDay(day, selectedDate);
@@ -222,6 +222,7 @@ export default function CalendarPage() {
                 </div>
               );
             })}
+          </div>
           </div>
 
           {/* Day section heading */}
@@ -394,7 +395,7 @@ export default function CalendarPage() {
           </div>
 
           {/* Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+          <div className="cal-month-grid" style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
             {/* Day headers */}
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
               <div key={d} style={{
