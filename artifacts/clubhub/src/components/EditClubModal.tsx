@@ -19,8 +19,11 @@ interface Club {
   description: string;
   default_day: string;
   default_location: string;
+  default_end_time?: string | null;
   chat_link?: string | null;
   profile_photo?: string | null;
+  approval_status?: string;
+  rejection_note?: string | null;
   leaders?: { name: string; role: string; email: string }[];
 }
 
@@ -56,6 +59,7 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
   const [description, setDescription] = useState(club.description);
   const [day, setDay] = useState(club.default_day);
   const [location, setLocation] = useState(club.default_location);
+  const [endTime, setEndTime] = useState(club.default_end_time ?? "");
   const [chatLink, setChatLink] = useState(club.chat_link ?? "");
   const [photoUrl, setPhotoUrl] = useState(club.profile_photo ?? "");
   const [leaders, setLeaders] = useState(
@@ -93,11 +97,42 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
     });
   };
 
+  const approvalStatus = club.approval_status ?? "approved";
+
   return (
     <>
       <DialogHeader className="mb-6">
         <DialogTitle className="text-2xl font-bold">Edit Club Details</DialogTitle>
       </DialogHeader>
+
+      {approvalStatus !== "approved" && (
+        <div style={{
+          padding: "10px 14px",
+          marginBottom: 16,
+          borderRadius: "var(--r-sm)",
+          background: approvalStatus === "pending"
+            ? "color-mix(in oklab, #BB8E33 12%, var(--surface-2))"
+            : "color-mix(in oklab, var(--danger) 10%, var(--surface-2))",
+          border: approvalStatus === "pending"
+            ? "1px solid color-mix(in oklab, #BB8E33 36%, transparent)"
+            : "1px solid color-mix(in oklab, var(--danger) 36%, transparent)",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 10,
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: approvalStatus === "pending" ? "#BB8E33" : "var(--danger)", flexShrink: 0, marginTop: 1 }}>
+            {approvalStatus === "pending" ? "schedule" : "cancel"}
+          </span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: approvalStatus === "pending" ? "#BB8E33" : "var(--danger)" }}>
+              {approvalStatus === "pending" ? "Pending admin approval" : "Club rejected"}
+            </div>
+            {approvalStatus === "rejected" && club.rejection_note && (
+              <div style={{ fontSize: 12.5, color: "var(--text-2)", marginTop: 3 }}>{club.rejection_note}</div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -171,6 +206,16 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
             <label className="text-sm font-medium text-secondary">Meeting Location *</label>
             <Input value={location} onChange={e => setLocation(e.target.value)} className="h-11 rounded-xl bg-surface" />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-secondary">Meeting End Time (Optional)</label>
+          <input
+            type="time"
+            value={endTime}
+            onChange={e => setEndTime(e.target.value)}
+            className="h-11 rounded-xl bg-surface border border-input px-3 text-sm w-full"
+          />
         </div>
 
         <div className="space-y-2">

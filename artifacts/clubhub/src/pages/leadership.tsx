@@ -5,10 +5,117 @@ import { ClubDetailModal } from "@/components/ClubDetailModal";
 import { CreateClubModal } from "@/components/CreateClubModal";
 import { EditClubModal } from "@/components/EditClubModal";
 import { ManageEventsModal } from "@/components/ManageEventsModal";
+import { AttendanceModal } from "@/components/AttendanceModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { format, parseISO } from "date-fns";
+
+interface PastEvent {
+  id: number;
+  title: string;
+  event_date: string;
+  event_time: string;
+  location: string;
+}
+
+function ApprovalBadge({ status, note }: { status: string; note?: string | null }) {
+  if (status === "approved") return null;
+  const isPending = status === "pending";
+  return (
+    <div
+      title={!isPending && note ? `Rejected: ${note}` : undefined}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        fontSize: 10.5,
+        fontWeight: 700,
+        padding: "3px 8px",
+        borderRadius: "var(--r-pill)",
+        background: isPending
+          ? "color-mix(in oklab, #BB8E33 18%, var(--surface))"
+          : "color-mix(in oklab, var(--danger) 14%, var(--surface))",
+        color: isPending ? "#BB8E33" : "var(--danger)",
+        border: isPending
+          ? "1px solid color-mix(in oklab, #BB8E33 36%, transparent)"
+          : "1px solid color-mix(in oklab, var(--danger) 36%, transparent)",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        whiteSpace: "nowrap",
+        cursor: !isPending && note ? "help" : "default",
+      }}
+    >
+      <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+        {isPending ? "schedule" : "cancel"}
+      </span>
+      {isPending ? "Pending approval" : "Rejected"}
+    </div>
+  );
+}
+
+function PastEventsSection({ clubId }: { clubId: number }) {
+  const [events, setEvents] = useState<PastEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [attendanceModal, setAttendanceModal] = useState<{ eventId: number; title: string; date: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const token = localStorage.getItem("clubhub_token");
+    fetch(`/api/clubs/${clubId}/events/past`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => r.json())
+      .then(json => { if (!cancelled && json.success) setEvents(json.events); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [clubId]);
+
+  if (loading || events.length === 0) return null;
+
+  return (
+    <div style={{ padding: "14px 18px", borderTop: "1px solid var(--border)", background: "var(--surface-2)" }}>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-3)", marginBottom: 10 }}>
+        Past events
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {events.map(event => (
+          <div key={event.id} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "10px 14px" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "var(--heading)" }}>{event.title}</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>
+                {format(parseISO(event.event_date), "MMM d")} · {event.event_time} · {event.location}
+              </div>
+            </div>
+            <button
+              onClick={() => setAttendanceModal({ eventId: event.id, title: event.title, date: event.event_date })}
+              style={{
+                display: "flex", alignItems: "center", gap: 5, padding: "5px 11px",
+                background: "var(--primary)", border: "none", borderRadius: "var(--r-sm)",
+                color: "#fff", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12,
+                cursor: "pointer", flexShrink: 0,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>how_to_reg</span>
+              Attendance
+            </button>
+          </div>
+        ))}
+      </div>
+      {attendanceModal && (
+        <AttendanceModal
+          clubId={clubId}
+          eventId={attendanceModal.eventId}
+          eventTitle={attendanceModal.title}
+          eventDate={attendanceModal.date}
+          onClose={() => setAttendanceModal(null)}
+        />
+      )}
+    </div>
+  );
+}
 
 export default function LeadershipPage() {
   useEffect(() => { document.title = "Leadership Hub — Station"; }, []);
@@ -26,6 +133,12 @@ export default function LeadershipPage() {
 
   const totalMembers = clubs.reduce((acc, c) => acc + c.member_count, 0);
   const upcomingEvents = clubs.reduce((acc, c) => acc + c.upcoming_events_count, 0);
+  const avgAttPct = clubs.reduce((sum, c) => {
+    const v = (c as unknown as { avg_attendance_pct: number | null }).avg_attendance_pct;
+    return v !== null ? sum + v : sum;
+  }, 0);
+  const clubsWithAtt = clubs.filter(c => (c as unknown as { avg_attendance_pct: number | null }).avg_attendance_pct !== null).length;
+  const avgAttDisplay = clubsWithAtt > 0 ? `${Math.round(avgAttPct / clubsWithAtt)}%` : "—";
 
   const deleteTargetClub = clubs.find(c => c.id === deleteConfirmId) ?? null;
 
@@ -85,10 +198,10 @@ export default function LeadershipPage() {
       {/* Stats row */}
       <div className="stat-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
         {[
-          { lbl: "Clubs Led", num: clubs.length, sub: "President", c: STAT_COLORS[0] },
+          { lbl: "Clubs Led", num: clubs.length, sub: "as leader or president", c: STAT_COLORS[0] },
           { lbl: "Total Members", num: totalMembers, sub: "across all clubs", c: STAT_COLORS[1] },
           { lbl: "Upcoming Events", num: upcomingEvents, sub: "next 30 days", c: STAT_COLORS[2] },
-          { lbl: "Avg. Attendance", num: "0%", sub: "placeholder — not tracked", c: STAT_COLORS[3] },
+          { lbl: "Avg. Attendance", num: avgAttDisplay, sub: clubsWithAtt > 0 ? "based on marked events" : "no attendance data yet", c: STAT_COLORS[3] },
         ].map(({ lbl, num, sub, c }) => (
           <div key={lbl} style={{ ...statStyle }}>
             <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: c }} />
@@ -135,6 +248,8 @@ export default function LeadershipPage() {
         <div className="club-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
           {clubs.map(club => {
             const color = getClubColor(club.category);
+            const approvalStatus = (club as unknown as { approval_status: string }).approval_status ?? "approved";
+            const rejectionNote = (club as unknown as { rejection_note: string | null }).rejection_note ?? null;
             return (
               <div
                 key={club.id}
@@ -149,6 +264,27 @@ export default function LeadershipPage() {
                   overflow: "hidden",
                 }}
               >
+                {/* Approval banner */}
+                {approvalStatus !== "approved" && (
+                  <div style={{
+                    padding: "8px 18px",
+                    background: approvalStatus === "pending"
+                      ? "color-mix(in oklab, #BB8E33 10%, var(--surface-2))"
+                      : "color-mix(in oklab, var(--danger) 8%, var(--surface-2))",
+                    borderBottom: "1px solid var(--border)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}>
+                    <ApprovalBadge status={approvalStatus} note={rejectionNote} />
+                    {approvalStatus === "rejected" && rejectionNote && (
+                      <span style={{ fontSize: 12, color: "var(--text-2)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {rejectionNote}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* Card body */}
                 <div
                   style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "16px 18px", cursor: "pointer" }}
@@ -194,6 +330,9 @@ export default function LeadershipPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Past events section */}
+                <PastEventsSection clubId={club.id} />
 
                 {/* Card footer */}
                 <div className="club-action-row" style={{ display: "flex", gap: 8, padding: "12px 18px", borderTop: "1px solid var(--border)", background: "var(--surface-2)" }}>

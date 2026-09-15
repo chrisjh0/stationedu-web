@@ -1,8 +1,21 @@
 import { Router } from "express";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/auth.js";
-import { getClubEvents, createEvent, deleteEvent } from "../services/eventService.js";
+import { getClubEvents, getPastClubEvents, createEvent, deleteEvent } from "../services/eventService.js";
 
 const router = Router();
+
+router.get("/clubs/:id/events/past", requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const clubId = parseInt(req.params.id as string, 10);
+    if (isNaN(clubId)) { res.status(404).json({ success: false, error: "Not found" }); return; }
+    const result = await getPastClubEvents(clubId);
+    if (!result.ok) { res.status(result.status).json({ success: false, error: result.error }); return; }
+    res.json({ success: true, events: result.data });
+  } catch (e) {
+    req.log.error({ err: e }, "GET /clubs/:id/events/past error");
+    res.status(500).json({ success: false, error: "An unexpected error occurred" });
+  }
+});
 
 router.get("/clubs/:id/events", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {

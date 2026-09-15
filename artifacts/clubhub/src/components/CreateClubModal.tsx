@@ -29,8 +29,10 @@ export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
   const [description, setDescription] = useState("");
   const [day, setDay] = useState("");
   const [location, setLocation] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [chatLink, setChatLink] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [pendingSuccess, setPendingSuccess] = useState(false);
 
   const [leaders, setLeaders] = useState([{ name: user?.full_name || "", role: "President", email: user?.email || "" }]);
 
@@ -54,20 +56,43 @@ export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
       }
     }, {
       onSuccess: (data) => {
-        toast.success("Club created successfully!");
+        toast.success("Club submitted for approval!");
         queryClient.invalidateQueries({ queryKey: getGetLeadingClubsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
-        if (onCreated && data.club_id) {
-          onCreated(data.club_id);
-        } else {
-          onClose();
-        }
+        setPendingSuccess(true);
+        setTimeout(() => {
+          if (onCreated && data.club_id) {
+            onCreated(data.club_id);
+          } else {
+            onClose();
+          }
+        }, 2000);
       },
       onError: (err) => {
         toast.error(err.message || "Failed to create club");
       }
     });
   };
+
+  if (pendingSuccess) {
+    return (
+      <Dialog open onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-[480px] rounded-3xl p-10 modal-fullscreen-mobile">
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 16 }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "color-mix(in oklab, var(--cat-stem) 16%, var(--surface-2))", display: "grid", placeItems: "center" }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 28, color: "var(--cat-stem)" }}>schedule</span>
+            </div>
+            <div>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 20, color: "var(--heading)", marginBottom: 8 }}>Submitted for approval</div>
+              <p style={{ fontSize: 13.5, color: "var(--text-2)", lineHeight: 1.6 }}>
+                Your club has been submitted and is pending admin review. It will appear in the directory once approved.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -149,6 +174,16 @@ export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
               <label className="text-sm font-medium text-secondary">Meeting Location *</label>
               <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Room 402" className="h-11 rounded-xl bg-surface" />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-secondary">Meeting End Time (Optional)</label>
+            <input
+              type="time"
+              value={endTime}
+              onChange={e => setEndTime(e.target.value)}
+              className="h-11 rounded-xl bg-surface border border-input px-3 text-sm w-full"
+            />
           </div>
 
           <div className="space-y-2">

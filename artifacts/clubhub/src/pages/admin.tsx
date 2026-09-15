@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 // Mirror of the backend AdminStats shape — must stay in sync with adminService.ts
 interface EngagementTrendItem { month: string; year: number; count: number }
@@ -63,6 +63,287 @@ function DonutChart({ pct, enrolled, total }: { pct: number; enrolled: number; t
         <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-3)" }}>
           {enrolled}/{total}
         </span>
+      </div>
+    </div>
+  );
+}
+
+interface PendingClub {
+  id: number;
+  name: string;
+  type: string;
+  category: string;
+  initial: string;
+  profile_photo: string;
+  submitted_at: string | null;
+  creator_name: string | null;
+  creator_email: string | null;
+}
+
+interface AdminUser {
+  id: number;
+  full_name: string;
+  email: string;
+  is_admin: boolean;
+  graduation_year: number | null;
+  profile_photo: string | null;
+}
+
+function PermissionsTab() {
+  const [pendingClubs, setPendingClubs] = useState<PendingClub[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loadingClubs, setLoadingClubs] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [rejectClubId, setRejectClubId] = useState<number | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+  const [actionPending, setActionPending] = useState<number | null>(null);
+  const rejectRef = useRef<HTMLTextAreaElement>(null);
+
+  const token = () => localStorage.getItem("clubhub_token");
+
+  const loadPending = useCallback(async () => {
+    setLoadingClubs(true);
+    try {
+      const res = await fetch("/api/admin/clubs/pending", {
+        headers: token() ? { Authorization: `Bearer ${token()}` } : {},
+      });
+      const json = await res.json();
+      if (json.success) setPendingClubs(json.clubs);
+    } catch { /* silent */ } finally {
+      setLoadingClubs(false);
+    }
+  }, []);
+
+  const loadUsers = useCallback(async () => {
+    setLoadingUsers(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        headers: token() ? { Authorization: `Bearer ${token()}` } : {},
+      });
+      const json = await res.json();
+      if (json.success) setUsers(json.users);
+    } catch { /* silent */ } finally {
+      setLoadingUsers(false);
+    }
+  }, []);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { loadPending(); loadUsers(); }, [loadPending, loadUsers]);
+
+  const handleApprove = async (clubId: number) => {
+    setActionPending(clubId);
+    try {
+      await fetch(`/api/admin/clubs/${clubId}/approve`, {
+        method: "POST",
+        headers: token() ? { Authorization: `Bearer ${token()}` } : {},
+      });
+      await loadPending();
+    } catch { /* silent */ } finally {
+      setActionPending(null);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectClubId) return;
+    setActionPending(rejectClubId);
+    try {
+      await fetch(`/api/admin/clubs/${rejectClubId}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token() ? { Authorization: `Bearer ${token()}` } : {}) },
+        body: JSON.stringify({ note: rejectNote }),
+      });
+      setRejectClubId(null);
+      setRejectNote("");
+      await loadPending();
+    } catch { /* silent */ } finally {
+      setActionPending(null);
+    }
+  };
+
+  const handleToggleAdmin = async (userId: number) => {
+    setActionPending(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/toggle-admin`, {
+        method: "POST",
+        headers: token() ? { Authorization: `Bearer ${token()}` } : {},
+      });
+      const json = await res.json();
+      if (json.success) {
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_admin: json.is_admin } : u));
+      }
+    } catch { /* silent */ } finally {
+      setActionPending(null);
+    }
+  };
+
+  const sectionStyle: React.CSSProperties = {
+    background: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--r-md)",
+    marginBottom: 20,
+    overflow: "hidden",
+  };
+
+  const sectionHead: React.CSSProperties = {
+    padding: "14px 18px",
+    borderBottom: "1px solid var(--border)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    background: "var(--surface-2)",
+  };
+
+  return (
+    <div>
+      {/* Pending Club Approvals */}
+      <div style={sectionStyle}>
+        <div style={sectionHead}>
+          <div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--heading)" }}>
+              Club Approvals
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>
+              Review clubs submitted by leaders
+            </div>
+          </div>
+          {!loadingClubs && (
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: "var(--r-pill)", background: pendingClubs.length > 0 ? "color-mix(in oklab, #BB8E33 18%, var(--surface-2))" : "var(--surface-2)", color: pendingClubs.length > 0 ? "#BB8E33" : "var(--text-3)", border: "1px solid var(--border)" }}>
+              {pendingClubs.length} pending
+            </span>
+          )}
+        </div>
+        {loadingClubs ? (
+          <div style={{ padding: 24, color: "var(--text-3)", fontSize: 13, textAlign: "center" }}>Loading…</div>
+        ) : pendingClubs.length === 0 ? (
+          <div style={{ padding: "32px 24px", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 32, display: "block", marginBottom: 8 }}>check_circle</span>
+            No pending clubs — all caught up!
+          </div>
+        ) : (
+          pendingClubs.map((club, i) => (
+            <div key={club.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderBottom: i < pendingClubs.length - 1 ? "1px solid var(--border)" : "none" }}>
+              <div style={{ width: 40, height: 40, borderRadius: "var(--r-sm)", background: "var(--primary)", color: "#fff", display: "grid", placeItems: "center", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17, flexShrink: 0, overflow: "hidden" }}>
+                {club.profile_photo ? <img src={club.profile_photo} alt={club.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : club.initial}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--heading)" }}>{club.name}</div>
+                <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>
+                  {club.type} · submitted by {club.creator_name ?? club.creator_email ?? "Unknown"}
+                  {club.submitted_at && ` · ${new Date(club.submitted_at).toLocaleDateString()}`}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <button
+                  onClick={() => handleApprove(club.id)}
+                  disabled={actionPending === club.id}
+                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "var(--cat-stem)", border: "none", borderRadius: "var(--r-sm)", color: "#fff", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12.5, cursor: "pointer", opacity: actionPending === club.id ? 0.6 : 1 }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>
+                  Approve
+                </button>
+                <button
+                  onClick={() => { setRejectClubId(club.id); setRejectNote(""); setTimeout(() => rejectRef.current?.focus(), 50); }}
+                  disabled={actionPending === club.id}
+                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "var(--surface)", border: "1px solid color-mix(in oklab, var(--danger) 40%, transparent)", borderRadius: "var(--r-sm)", color: "var(--danger)", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12.5, cursor: "pointer" }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>close</span>
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+
+        {/* Inline reject note input */}
+        {rejectClubId && (
+          <div style={{ padding: "14px 18px", borderTop: "1px solid var(--border)", background: "var(--surface-2)", display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: "block", fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--text-3)", marginBottom: 6 }}>
+                Rejection reason for "{pendingClubs.find(c => c.id === rejectClubId)?.name}"
+              </label>
+              <textarea
+                ref={rejectRef}
+                value={rejectNote}
+                onChange={e => setRejectNote(e.target.value)}
+                placeholder="Explain why this club was rejected (optional)"
+                rows={2}
+                style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", fontFamily: "var(--font-body)", fontSize: 13.5, resize: "none", boxSizing: "border-box", outline: "none" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 8, paddingTop: 22 }}>
+              <button onClick={() => setRejectClubId(null)} style={{ padding: "7px 14px", borderRadius: "var(--r-sm)", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+                Cancel
+              </button>
+              <button
+                onClick={handleReject}
+                disabled={actionPending !== null}
+                style={{ padding: "7px 14px", borderRadius: "var(--r-sm)", border: "none", background: "var(--danger)", color: "#fff", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 13, cursor: "pointer", opacity: actionPending !== null ? 0.6 : 1 }}
+              >
+                Confirm reject
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Admin Users Management */}
+      <div style={sectionStyle}>
+        <div style={sectionHead}>
+          <div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--heading)" }}>
+              Admin Users
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 2 }}>
+              Grant or revoke admin privileges
+            </div>
+          </div>
+          {!loadingUsers && (
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: "var(--r-pill)", background: "var(--surface-2)", color: "var(--text-3)", border: "1px solid var(--border)" }}>
+              {users.filter(u => u.is_admin).length} admins
+            </span>
+          )}
+        </div>
+        {loadingUsers ? (
+          <div style={{ padding: 24, color: "var(--text-3)", fontSize: 13, textAlign: "center" }}>Loading…</div>
+        ) : (
+          users.map((user, i) => (
+            <div key={user.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 18px", borderBottom: i < users.length - 1 ? "1px solid var(--border)" : "none" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: "var(--primary)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden" }}>
+                {user.profile_photo ? <img src={user.profile_photo} alt={user.full_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : user.full_name?.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: 13.5, color: "var(--heading)", display: "flex", alignItems: "center", gap: 8 }}>
+                  {user.full_name}
+                  {user.is_admin && (
+                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: "2px 7px", borderRadius: "var(--r-pill)", background: "var(--primary)", color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 11.5, color: "var(--text-3)" }}>{user.email}</div>
+              </div>
+              <button
+                onClick={() => handleToggleAdmin(user.id)}
+                disabled={actionPending === user.id}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: "var(--r-sm)",
+                  border: user.is_admin ? "1px solid color-mix(in oklab, var(--danger) 40%, transparent)" : "1px solid color-mix(in oklab, var(--cat-stem) 40%, transparent)",
+                  background: user.is_admin ? "color-mix(in oklab, var(--danger) 8%, var(--surface))" : "color-mix(in oklab, var(--cat-stem) 10%, var(--surface))",
+                  color: user.is_admin ? "var(--danger)" : "var(--cat-stem)",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 600,
+                  fontSize: 12,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                  opacity: actionPending === user.id ? 0.6 : 1,
+                }}
+              >
+                {user.is_admin ? "Revoke admin" : "Make admin"}
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -348,30 +629,7 @@ export default function AdminPage() {
           </>
         ) : null
       ) : (
-        /* Permissions placeholder */
-        <div style={{
-          background: "var(--surface)",
-          border: "1px dashed var(--border-strong)",
-          borderRadius: "var(--r-md)",
-          padding: "56px 40px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          textAlign: "center",
-        }}>
-          <div style={{ width: 56, height: 56, borderRadius: "var(--r-md)", background: "var(--primary)", display: "grid", placeItems: "center", color: "#fff", marginBottom: 18 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 28 }}>admin_panel_settings</span>
-          </div>
-          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 21, color: "var(--heading)", marginBottom: 8 }}>
-            User &amp; access management
-          </h2>
-          <p style={{ color: "var(--text-2)", maxWidth: "46ch", fontSize: 13.5, lineHeight: 1.65 }}>
-            Add or remove administrators, assign office roles, and control who can view analytics. This panel is in design.
-          </p>
-          <span style={{ marginTop: 18, fontFamily: "var(--font-mono)", fontSize: 10.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--accent)", border: "1px solid color-mix(in oklab, var(--accent) 40%, transparent)", padding: "6px 12px", borderRadius: "var(--r-sm)" }}>
-            Coming soon
-          </span>
-        </div>
+        <PermissionsTab />
       )}
     </div>
   );

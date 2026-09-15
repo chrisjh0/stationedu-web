@@ -39,6 +39,22 @@ export interface LeadingClub {
   user_role: string;
   member_count: number;
   upcoming_events_count: number;
+  approval_status: string;
+  rejection_note: string | null;
+  submitted_at: string | null;
+  avg_attendance_pct: number | null;
+}
+
+export interface PendingClub {
+  id: number;
+  name: string;
+  type: string;
+  category: string;
+  initial: string;
+  profile_photo: string;
+  submitted_at: string | null;
+  creator_name: string | null;
+  creator_email: string | null;
 }
 
 export interface ClubLeaderShape {
@@ -83,6 +99,7 @@ export async function listClubs(
   let query = supabase
     .from("clubs")
     .select("id, name, description, type, category, initial, default_day, default_location, chat_link, profile_photo")
+    .eq("approval_status", "approved")
     .order("name", { ascending: true })
     .range(offset, offset + limit - 1);
 
@@ -170,7 +187,7 @@ export async function listLeadingClubs(
   for (const clubId of clubIds) {
     const { data: clubArr } = await supabase
       .from("clubs")
-      .select("id, name, description, type, category, initial, default_day, default_location, chat_link, profile_photo")
+      .select("id, name, description, type, category, initial, default_day, default_location, chat_link, profile_photo, approval_status, rejection_note, submitted_at")
       .eq("id", clubId)
       .limit(1);
 
@@ -179,10 +196,15 @@ export async function listLeadingClubs(
 
     const myRecord = (myLeaderRecords ?? []).find((l: { club_id: number }) => l.club_id === clubId) as { role: string } | undefined;
 
-    const [{ count: memberCount }, { count: upcomingCount }] = await Promise.all([
+    const [{ count: memberCount }, { count: upcomingCount }, { data: attRows }] = await Promise.all([
       supabase.from("enrollments").select("*", { count: "exact", head: true }).eq("club_id", clubId),
       supabase.from("events").select("*", { count: "exact", head: true }).eq("club_id", clubId).gte("event_date", today),
+      supabase.from("attendance").select("attended").eq("club_id", clubId),
     ]);
+
+    const totalAtt = (attRows ?? []).length;
+    const presentAtt = (attRows ?? []).filter((r: { attended: boolean }) => r.attended).length;
+    const avgAttendancePct = totalAtt > 0 ? Math.round((presentAtt / totalAtt) * 100) : null;
 
     result.push({
       id: club.id as number,
@@ -198,6 +220,10 @@ export async function listLeadingClubs(
       user_role: myRecord?.role ?? "Leader",
       member_count: memberCount ?? 0,
       upcoming_events_count: upcomingCount ?? 0,
+      approval_status: (club.approval_status as string) ?? "approved",
+      rejection_note: (club.rejection_note as string | null) ?? null,
+      submitted_at: (club.submitted_at as string | null) ?? null,
+      avg_attendance_pct: avgAttendancePct,
     });
   }
 
@@ -323,6 +349,8 @@ export async function createClub(
       chat_link: htmlEscape(chat_link ?? ""),
       profile_photo: profile_photo ?? "",
       creator_user_id: userId,
+      approval_status: "pending",
+      submitted_at: new Date().toISOString(),
     })
     .select("id")
     .single();
@@ -396,6 +424,12 @@ export async function updateClub(
   if (chat_link !== undefined) updates.chat_link = htmlEscape(chat_link);
   if (profile_photo !== undefined) updates.profile_photo = profile_photo;
 
+  if (name || description !== undefined) {
+    updates.approval_status = "pending";
+    updates.submitted_at = new Date().toISOString();
+    updates.rejection_note = null;
+  }
+
   await supabase.from("clubs").update(updates).eq("id", clubId);
 
   if (Array.isArray(leaders)) {
@@ -422,6 +456,74 @@ export async function updateClub(
       });
     }
   }
+
+  return ok(undefined);
+}
+
+export async function getPendingClubs(): Promise<ServiceResult<PendingClub[]>> {
+  const { data: clubs, error } = await supabase
+    .from("clubs")
+    .select("id, name, type, category, initial, profile_photo, submitted_at, creator_user_id")
+    .eq("approval_status", "pending")
+    .order("submitted_at", { ascending: true });
+
+  if (error) throw error;
+
+  const result: PendingClub[] = [];
+  for (const club of clubs ?? []) {
+    const c = club as {
+      id: number; name: string; type: string; category: string;
+      initial: string; profile_photo: string; submitted_at: string | null; creator_user_id: number | null;
+    };
+    let creatorName: string | null = null;
+    let creatorEmail: string | null = null;
+    if (c.creator_user_id) {
+      const { data: u } = await supabase
+        .from("users")
+        .select("full_name, email")
+        .eq("id", c.creator_user_id)
+        .limit(1);
+      if (u?.[0]) {
+        const user = u[0] as { full_name: string; email: string };
+        creatorName = user.full_name;
+        creatorEmail = user.email;
+      }
+    }
+    result.push({
+      id: c.id,
+      name: c.name,
+      type: c.type,
+      category: c.category,
+      initial: c.initial,
+      profile_photo: c.profile_photo,
+      submitted_at: c.submitted_at,
+      creator_name: creatorName,
+      creator_email: creatorEmail,
+    });
+  }
+  return ok(result);
+}
+
+export async function approveClub(clubId: number): Promise<ServiceResult<void>> {
+  const { data: clubs } = await supabase.from("clubs").select("id").eq("id", clubId).limit(1);
+  if (!clubs?.[0]) return err(404, "Not found");
+
+  await supabase
+    .from("clubs")
+    .update({ approval_status: "approved", rejection_note: null })
+    .eq("id", clubId);
+
+  return ok(undefined);
+}
+
+export async function rejectClub(clubId: number, note: string): Promise<ServiceResult<void>> {
+  const { data: clubs } = await supabase.from("clubs").select("id").eq("id", clubId).limit(1);
+  if (!clubs?.[0]) return err(404, "Not found");
+
+  await supabase
+    .from("clubs")
+    .update({ approval_status: "rejected", rejection_note: htmlEscape(note || "") })
+    .eq("id", clubId);
 
   return ok(undefined);
 }

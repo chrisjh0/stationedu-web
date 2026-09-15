@@ -1,5 +1,4 @@
-import { useMemo, useEffect } from "react";
-import { useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useGetClubs, useGetNotifications, getGetNotificationsQueryKey, useGetCalendarEvents, getGetCalendarEventsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { getClubColor } from "@/lib/color-utils";
@@ -39,6 +38,15 @@ export default function ClubsPage() {
   }, [calData, data, today]);
 
   const unreadCount = notifData?.success ? notifData.unread_count : 0;
+
+  const [hoursLogged, setHoursLogged] = useState<number | null>(null);
+  useEffect(() => {
+    const token = localStorage.getItem("clubhub_token");
+    fetch("/api/user/hours", { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then(r => r.json())
+      .then(json => { if (json.success) setHoursLogged(json.total_hours); })
+      .catch(() => {});
+  }, []);
 
   const statStyle: React.CSSProperties = {
     background: "var(--surface)",
@@ -101,7 +109,7 @@ export default function ClubsPage() {
         {[
           { lbl: "Memberships", num: enrolledClubs.length, sub: `${enrolledClubs.filter(c => c.is_leader).length} as leader`, c: STAT_COLORS[0] },
           { lbl: "Events This Week", num: eventsThisWeek, sub: "enrolled clubs", c: STAT_COLORS[1] },
-          { lbl: "Hours Logged", num: 0, sub: "placeholder — not tracked", c: STAT_COLORS[2] },
+          { lbl: "Hours Logged", num: hoursLogged ?? "—", sub: hoursLogged !== null ? "from attended events" : "loading…", c: STAT_COLORS[2] },
           { lbl: "Notifications", num: unreadCount, sub: "unread", c: STAT_COLORS[3] },
         ].map(({ lbl, num, sub, c }) => (
           <div key={lbl} style={{ ...statStyle }}>

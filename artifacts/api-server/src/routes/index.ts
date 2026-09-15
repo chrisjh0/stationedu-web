@@ -10,6 +10,7 @@ import leadersRouter from "./leaders.js";
 import storageRouter from "./storage.js";
 import notificationsRouter from "./notifications.js";
 import adminRouter from "./admin.js";
+import attendanceRouter from "./attendance.js";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(enrollmentRouter);
 router.use(calendarRouter);
 router.use(leadersRouter);
 router.use(adminRouter);
+router.use(attendanceRouter);
 
 export default router;

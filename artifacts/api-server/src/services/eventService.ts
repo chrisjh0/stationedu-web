@@ -8,6 +8,7 @@ export interface EventShape {
   title: string;
   event_date: string;
   event_time: string;
+  end_time: string | null;
   location: string;
   description: string;
 }
@@ -16,6 +17,7 @@ export interface CreateEventInput {
   title: string;
   event_date: string;
   event_time: string;
+  end_time?: string;
   location: string;
   description?: string;
 }
@@ -32,7 +34,7 @@ export async function getClubEvents(clubId: number): Promise<ServiceResult<Event
   const today = todayUtc();
   const { data: events, error } = await supabase
     .from("events")
-    .select("id, title, event_date, event_time, location, description")
+    .select("id, title, event_date, event_time, end_time, location, description")
     .eq("club_id", clubId)
     .gte("event_date", today)
     .order("event_date", { ascending: true })
@@ -46,6 +48,7 @@ export async function getClubEvents(clubId: number): Promise<ServiceResult<Event
       title: e.title,
       event_date: e.event_date,
       event_time: e.event_time,
+      end_time: e.end_time ?? null,
       location: e.location,
       description: e.description,
     }))
@@ -78,6 +81,7 @@ export async function createEvent(
   const today = todayUtc();
   if (event_date < today) return err(400, "Event date must be today or in the future");
 
+  const { end_time } = input;
   const { data: event, error } = await supabase
     .from("events")
     .insert({
@@ -85,6 +89,7 @@ export async function createEvent(
       title: htmlEscape(title),
       event_date,
       event_time,
+      end_time: end_time ?? null,
       location: htmlEscape(location),
       description: htmlEscape(description ?? ""),
     })
@@ -93,6 +98,40 @@ export async function createEvent(
 
   if (error || !event) throw error;
   return ok({ event_id: (event as { id: number }).id });
+}
+
+export async function getPastClubEvents(clubId: number): Promise<ServiceResult<EventShape[]>> {
+  const { data: clubs } = await supabase
+    .from("clubs")
+    .select("id")
+    .eq("id", clubId)
+    .limit(1);
+
+  if (!clubs?.[0]) return err(404, "Not found");
+
+  const today = todayUtc();
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("id, title, event_date, event_time, end_time, location, description")
+    .eq("club_id", clubId)
+    .lt("event_date", today)
+    .order("event_date", { ascending: false })
+    .order("event_time", { ascending: false })
+    .limit(20);
+
+  if (error) throw error;
+
+  return ok(
+    (events ?? []).map((e: EventShape) => ({
+      id: e.id,
+      title: e.title,
+      event_date: e.event_date,
+      event_time: e.event_time,
+      end_time: e.end_time ?? null,
+      location: e.location,
+      description: e.description,
+    }))
+  );
 }
 
 export async function deleteEvent(

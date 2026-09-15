@@ -17,6 +17,7 @@ export function ManageEventsModal({ clubId, onClose }: { clubId: number; onClose
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
 
   const club = clubData?.success ? clubData.club : null;
@@ -35,12 +36,12 @@ export function ManageEventsModal({ clubId, onClose }: { clubId: number; onClose
       return;
     }
     createMutation.mutate(
-      { id: clubId, data: { title, event_date: date, event_time: time, location } },
+      { id: clubId, data: { title, event_date: date, event_time: time, location, ...(endTime ? { end_time: endTime } : {}) } as Parameters<typeof createMutation.mutate>[0]["data"] },
       {
         onSuccess: () => {
           toast.success("Event added");
           invalidateEvents();
-          setTitle(""); setDate(""); setTime(""); setLocation("");
+          setTitle(""); setDate(""); setTime(""); setEndTime(""); setLocation("");
         },
         onError: (err) => toast.error(err.message || "Failed to add event"),
       }
@@ -99,14 +100,18 @@ export function ManageEventsModal({ clubId, onClose }: { clubId: number; onClose
             <label style={labelStyle}>Event Title</label>
             <input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. General Meeting" />
           </div>
-          <div className="event-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+          <div className="event-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
             <div>
               <label style={labelStyle}>Date</label>
               <input type="date" style={inputStyle} value={date} onChange={e => setDate(e.target.value)} />
             </div>
             <div>
-              <label style={labelStyle}>Time</label>
+              <label style={labelStyle}>Start time</label>
               <input type="time" style={inputStyle} value={time} onChange={e => setTime(e.target.value)} />
+            </div>
+            <div>
+              <label style={labelStyle}>End time</label>
+              <input type="time" style={inputStyle} value={endTime} onChange={e => setEndTime(e.target.value)} />
             </div>
             <div>
               <label style={labelStyle}>Location</label>
