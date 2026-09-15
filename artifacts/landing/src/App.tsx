@@ -11,6 +11,7 @@ import EmailClientPicker from './components/EmailClientPicker'
 import Accessibility from './pages/Accessibility'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
+import Cookies from './pages/Cookies'
 
 const MAILTO = `mailto:31christopherho@gmail.com?subject=${encodeURIComponent('Demo Request — Station')}`
 
@@ -51,5 +52,6 @@ export default function App() {
   if (path === '/accessibility') return <Accessibility />
   if (path === '/privacy') return <Privacy />
   if (path === '/terms') return <Terms />
+  if (path === '/cookies') return <Cookies />
   return <HomePage />
 }

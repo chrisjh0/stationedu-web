@@ -233,21 +233,15 @@ export default function AccessibilityPage() {
         </div>
       </main>
 
-      {/* Minimal footer */}
-      <footer style={{
-        borderTop: "1px solid var(--border)",
-        background: "var(--surface)",
-        padding: "20px 32px",
-        flexShrink: 0,
-      }}>
-        <p style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: 11.5,
-          color: "var(--text-3)",
-          margin: 0,
-        }}>
-          © 2026 Station Education, Inc.
-        </p>
+      <footer style={{ borderTop: "1px solid var(--border)", background: "var(--surface)", padding: "20px 32px", flexShrink: 0 }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, color: "var(--text-3)", margin: 0 }}>© 2026 Station Education, Inc.</p>
+          <span style={{ display: "flex", gap: 16, fontFamily: "var(--font-mono)", fontSize: 11.5 }}>
+            <Link href="/privacy"><a style={{ color: "var(--text-3)", textDecoration: "none" }}>Privacy</a></Link>
+            <Link href="/terms"><a style={{ color: "var(--text-3)", textDecoration: "none" }}>Terms</a></Link>
+            <Link href="/cookies"><a style={{ color: "var(--text-3)", textDecoration: "none" }}>Cookies</a></Link>
+          </span>
+        </div>
       </footer>
     </div>
   );

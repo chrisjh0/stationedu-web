@@ -73,6 +73,10 @@ export default function Footer() {
               onMouseEnter={(e) => (e.currentTarget.style.color = '#C04A40')}
               onMouseLeave={(e) => (e.currentTarget.style.color = '#4C5567')}
             >Terms</a>
+            <a href="/cookies" style={{ color: '#4C5567', textDecoration: 'none' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#C04A40')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#4C5567')}
+            >Cookies</a>
             <a href="/accessibility" style={{ color: '#4C5567', textDecoration: 'none' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#C04A40')}
               onMouseLeave={(e) => (e.currentTarget.style.color = '#4C5567')}

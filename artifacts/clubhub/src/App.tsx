@@ -18,6 +18,9 @@ import DirectoryPage from "@/pages/directory";
 import SettingsPage from "@/pages/settings";
 import AdminPage from "@/pages/admin";
 import AccessibilityPage from "@/pages/accessibility";
+import PrivacyPage from "@/pages/privacy";
+import TermsPage from "@/pages/terms";
+import CookiesPage from "@/pages/cookies";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -98,6 +101,9 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/accessibility" component={AccessibilityPage} />
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/terms" component={TermsPage} />
+      <Route path="/cookies" component={CookiesPage} />
       <Route path="/">
         <Redirect to="/calendar" />
       </Route>

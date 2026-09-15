@@ -245,7 +245,8 @@ export default function Accessibility() {
           <p style={{ fontSize: 13, color: '#4C5567', margin: 0 }}>
             © 2026 Station Education, Inc. ·{' '}
             <a href="/privacy" style={{ color: '#4C5567' }}>Privacy</a> ·{' '}
-            <a href="/terms" style={{ color: '#4C5567' }}>Terms</a>
+            <a href="/terms" style={{ color: '#4C5567' }}>Terms</a> ·{' '}
+            <a href="/cookies" style={{ color: '#4C5567' }}>Cookies</a>
           </p>
         </div>
       </footer>

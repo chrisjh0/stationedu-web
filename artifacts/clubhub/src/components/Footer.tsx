@@ -22,11 +22,18 @@ export function Footer() {
       }}>
         <span>© 2026 Station Education, Inc.</span>
         <span style={{ display: "flex", gap: 16 }}>
+          <Link href="/privacy">
+            <a style={{ color: "var(--text-3)", textDecoration: "none" }}>Privacy</a>
+          </Link>
+          <Link href="/terms">
+            <a style={{ color: "var(--text-3)", textDecoration: "none" }}>Terms</a>
+          </Link>
+          <Link href="/cookies">
+            <a style={{ color: "var(--text-3)", textDecoration: "none" }}>Cookies</a>
+          </Link>
           <Link href="/accessibility">
             <a style={{ color: "var(--text-3)", textDecoration: "none" }}>Accessibility</a>
           </Link>
-          <a href="https://stationforedu.com/privacy" style={{ color: "var(--text-3)", textDecoration: "none" }} target="_blank" rel="noopener noreferrer">Privacy</a>
-          <a href="https://stationforedu.com/terms" style={{ color: "var(--text-3)", textDecoration: "none" }} target="_blank" rel="noopener noreferrer">Terms</a>
         </span>
       </div>
     </footer>
