@@ -1,22 +1,33 @@
+import { Link } from "wouter";
+
 export function Footer() {
   return (
-    <footer className="w-full py-12 px-6 border-t border-outline-variant/20 mt-20 text-sm text-secondary">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-2 opacity-60">
-          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs">
-            C
-          </div>
-          <span className="font-semibold">ClubHub</span>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-6">
-          <a href="#" className="hover:text-foreground transition-colors">Support</a>
-          <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-foreground transition-colors">Help Center</a>
-        </div>
-        <div className="opacity-60 text-right">
-          &copy; {new Date().getFullYear()} ClubHub. All rights reserved.
-        </div>
+    <footer style={{
+      borderTop: "1px solid var(--border)",
+      background: "var(--surface)",
+      padding: "20px 32px",
+      marginTop: "auto",
+    }}>
+      <div style={{
+        maxWidth: 1140,
+        margin: "0 auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 14,
+        flexWrap: "wrap",
+        fontFamily: "var(--font-mono)",
+        fontSize: 11.5,
+        color: "var(--text-3)",
+      }}>
+        <span>© 2026 Station Education, Inc.</span>
+        <span style={{ display: "flex", gap: 16 }}>
+          <Link href="/accessibility">
+            <a style={{ color: "var(--text-3)", textDecoration: "none" }}>Accessibility</a>
+          </Link>
+          <a href="https://stationforedu.com/privacy" style={{ color: "var(--text-3)", textDecoration: "none" }} target="_blank" rel="noopener noreferrer">Privacy</a>
+          <a href="https://stationforedu.com/terms" style={{ color: "var(--text-3)", textDecoration: "none" }} target="_blank" rel="noopener noreferrer">Terms</a>
+        </span>
       </div>
     </footer>
   );

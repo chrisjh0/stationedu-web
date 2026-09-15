@@ -25,6 +25,7 @@ export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
 
   const [name, setName] = useState("");
   const [type, setType] = useState<string>("");
+  const [category, setCategory] = useState("Club");
   const [description, setDescription] = useState("");
   const [day, setDay] = useState("");
   const [location, setLocation] = useState("");
@@ -43,6 +44,7 @@ export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
       data: {
         name,
         type: type as CreateClubBodyType,
+        category,
         description,
         default_day: day,
         default_location: location,
@@ -75,7 +77,7 @@ export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-secondary">Club Name *</label>
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Debate Team" className="h-11 rounded-xl bg-surface" />
@@ -92,6 +94,20 @@ export function CreateClubModal({ onClose, onCreated }: CreateClubModalProps) {
                   <SelectItem value="Team">Team</SelectItem>
                   <SelectItem value="Union">Union</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-secondary">Category *</label>
+              <Select value={category} onValueChange={(v: string) => setCategory(v)}>
+                <SelectTrigger className="h-11 rounded-xl bg-surface">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Club">Club</SelectItem>
+                  <SelectItem value="Committee">Committee</SelectItem>
+                  <SelectItem value="Union">Union</SelectItem>
+                  <SelectItem value="Team">Team</SelectItem>
                 </SelectContent>
               </Select>
             </div>

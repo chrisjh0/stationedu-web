@@ -18,6 +18,8 @@ function parseId(raw: string | undefined): number | null {
   return isNaN(n) || n <= 0 ? null : n;
 }
 
+const VALID_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Daily"];
+
 router.get("/clubs", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const rawLimit = parseInt((req.query.limit as string) || "12", 10);
@@ -25,7 +27,10 @@ router.get("/clubs", requireAuth, async (req: AuthenticatedRequest, res) => {
     const limit = isNaN(rawLimit) || rawLimit <= 0 ? 12 : Math.min(rawLimit, 100);
     const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset;
 
-    const result = await listClubs(req.userId!, req.userEmail!, limit, offset);
+    const rawDay = (req.query.default_day as string | undefined) ?? "";
+    const defaultDay = rawDay && VALID_DAYS.includes(rawDay) ? rawDay : undefined;
+
+    const result = await listClubs(req.userId!, req.userEmail!, limit, offset, defaultDay);
     if (!result.ok) {
       res.status(result.status).json({ success: false, error: result.error });
       return;

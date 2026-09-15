@@ -5,6 +5,7 @@ export interface CalendarEvent {
   id: number;
   club_id: number;
   club_name: string;
+  club_category: string;
   title: string;
   event_date: string;
   event_time: string;
@@ -43,7 +44,7 @@ export async function getCalendarEvents(
 
   const { data: events, error: eventsError } = await supabase
     .from("events")
-    .select("id, club_id, title, event_date, event_time, location, description, clubs!inner(name)")
+    .select("id, club_id, title, event_date, event_time, location, description, clubs!inner(name, category)")
     .gte("event_date", startDate)
     .lte("event_date", endDate)
     .order("event_date", { ascending: true })
@@ -64,7 +65,8 @@ export async function getCalendarEvents(
     (events ?? []).map((e: Record<string, unknown>) => ({
       id: e.id as number,
       club_id: e.club_id as number,
-      club_name: (e.clubs as { name: string }).name,
+      club_name: (e.clubs as { name: string; category: string }).name,
+      club_category: (e.clubs as { name: string; category: string }).category || "Club",
       title: e.title as string,
       event_date: e.event_date as string,
       event_time: e.event_time as string,

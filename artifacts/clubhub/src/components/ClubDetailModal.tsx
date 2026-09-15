@@ -23,7 +23,7 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
   const [confirmUnenroll, setConfirmUnenroll] = useState(false);
 
   const club = data?.success ? data.club : null;
-  const color = club ? getClubColor(club.id) : "var(--primary)";
+  const color = club ? getClubColor(club.category) : "var(--primary)";
 
   const invalidate = (id: number) => {
     queryClient.invalidateQueries({ queryKey: getGetClubsQueryKey() });
@@ -95,7 +95,7 @@ export function ClubDetailModal({ clubId, onClose, onEnrollmentChange }: ClubDet
                   textTransform: "uppercase" as const, letterSpacing: "0.04em",
                   fontFamily: "var(--font-mono)", marginBottom: 5,
                 }}>
-                  {club.type}
+                  {club.category}
                 </div>
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 20, color: "var(--heading)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
                   {club.name}

@@ -60,22 +60,22 @@ export default function Footer() {
             flexWrap: 'wrap',
             fontFamily: '"JetBrains Mono", ui-monospace, monospace',
             fontSize: 11.5,
-            color: '#79839A',
+            color: '#4C5567',
           }}
         >
           <span>© 2026 Station Education, Inc.</span>
           <span style={{ display: 'flex', gap: 16 }}>
-            <a href="/privacy" style={{ color: '#79839A', textDecoration: 'none' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#DD5E54')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#79839A')}
+            <a href="/privacy" style={{ color: '#4C5567', textDecoration: 'none' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#C04A40')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#4C5567')}
             >Privacy</a>
-            <a href="/terms" style={{ color: '#79839A', textDecoration: 'none' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#DD5E54')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#79839A')}
+            <a href="/terms" style={{ color: '#4C5567', textDecoration: 'none' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#C04A40')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#4C5567')}
             >Terms</a>
-            <a href="/accessibility" style={{ color: '#79839A', textDecoration: 'none' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#DD5E54')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#79839A')}
+            <a href="/accessibility" style={{ color: '#4C5567', textDecoration: 'none' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#C04A40')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#4C5567')}
             >Accessibility</a>
           </span>
         </div>

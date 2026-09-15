@@ -6,11 +6,15 @@ import { resolveLeaderStatus } from "./leaderHelpers.js";
 export const CLUB_TYPES = ["Committee", "Union", "Club", "Team", "Other"] as const;
 export type ClubType = typeof CLUB_TYPES[number];
 
+export const CLUB_CATEGORIES = ["Club", "Committee", "Union", "Team"] as const;
+export type ClubCategory = typeof CLUB_CATEGORIES[number];
+
 export interface ClubListItem {
   id: number;
   name: string;
   description: string;
   type: string;
+  category: string;
   initial: string;
   default_day: string;
   default_location: string;
@@ -26,6 +30,7 @@ export interface LeadingClub {
   name: string;
   description: string;
   type: string;
+  category: string;
   initial: string;
   default_day: string;
   default_location: string;
@@ -60,6 +65,7 @@ export interface CreateClubInput {
   name: string;
   description?: string;
   type: string;
+  category?: string;
   default_day?: string;
   default_location?: string;
   chat_link?: string;
@@ -71,13 +77,20 @@ export async function listClubs(
   userId: number,
   userEmail: string,
   limit: number = 12,
-  offset: number = 0
+  offset: number = 0,
+  defaultDay?: string
 ): Promise<ServiceResult<ClubListItem[]>> {
-  const { data: clubs, error: clubError } = await supabase
+  let query = supabase
     .from("clubs")
-    .select("id, name, description, type, initial, default_day, default_location, chat_link, profile_photo")
+    .select("id, name, description, type, category, initial, default_day, default_location, chat_link, profile_photo")
     .order("name", { ascending: true })
     .range(offset, offset + limit - 1);
+
+  if (defaultDay) {
+    query = query.eq("default_day", defaultDay);
+  }
+
+  const { data: clubs, error: clubError } = await query;
 
   if (clubError) throw clubError;
 
@@ -117,6 +130,7 @@ export async function listClubs(
       name: club.name as string,
       description: club.description as string,
       type: club.type as string,
+      category: (club.category as string) || "Club",
       initial: club.initial as string,
       default_day: club.default_day as string,
       default_location: club.default_location as string,
@@ -156,7 +170,7 @@ export async function listLeadingClubs(
   for (const clubId of clubIds) {
     const { data: clubArr } = await supabase
       .from("clubs")
-      .select("id, name, description, type, initial, default_day, default_location, chat_link, profile_photo")
+      .select("id, name, description, type, category, initial, default_day, default_location, chat_link, profile_photo")
       .eq("id", clubId)
       .limit(1);
 
@@ -175,6 +189,7 @@ export async function listLeadingClubs(
       name: club.name as string,
       description: club.description as string,
       type: club.type as string,
+      category: (club.category as string) || "Club",
       initial: club.initial as string,
       default_day: club.default_day as string,
       default_location: club.default_location as string,
@@ -196,7 +211,7 @@ export async function getClub(
 ): Promise<ServiceResult<ClubDetail>> {
   const { data: clubArr } = await supabase
     .from("clubs")
-    .select("id, name, description, type, initial, default_day, default_location, chat_link, profile_photo")
+    .select("id, name, description, type, category, initial, default_day, default_location, chat_link, profile_photo")
     .eq("id", clubId)
     .limit(1);
 
@@ -234,6 +249,7 @@ export async function getClub(
     name: club.name as string,
     description: club.description as string,
     type: club.type as string,
+    category: (club.category as string) || "Club",
     initial: club.initial as string,
     default_day: club.default_day as string,
     default_location: club.default_location as string,
@@ -263,11 +279,15 @@ export async function createClub(
   userId: number,
   userEmail: string
 ): Promise<ServiceResult<{ club_id: number }>> {
-  const { name, description, type, default_day, default_location, chat_link, profile_photo, leaders } = input;
+  const { name, description, type, category, default_day, default_location, chat_link, profile_photo, leaders } = input;
 
   if (!name || !name.trim()) return err(400, "Club name is required");
 
   if (!CLUB_TYPES.includes(type as (typeof CLUB_TYPES)[number])) return err(400, "Invalid club type");
+
+  if (category && !CLUB_CATEGORIES.includes(category as (typeof CLUB_CATEGORIES)[number])) {
+    return err(400, "Invalid club category");
+  }
 
   if (!Array.isArray(leaders) || leaders.length === 0) return err(400, "At least one leader is required");
 
@@ -296,6 +316,7 @@ export async function createClub(
       name: htmlEscape(name.trim()),
       description: htmlEscape(description ?? ""),
       type,
+      category: category ?? "Club",
       initial,
       default_day: htmlEscape(default_day ?? ""),
       default_location: htmlEscape(default_location ?? ""),
@@ -344,7 +365,7 @@ export async function updateClub(
   const isLdr = await resolveLeaderStatus(clubId, userId, userEmail);
   if (!isLdr) return err(403, "You must be a leader of this club");
 
-  const { name, description, type, default_day, default_location, chat_link, profile_photo, leaders } = input;
+  const { name, description, type, category, default_day, default_location, chat_link, profile_photo, leaders } = input;
 
   if (name && name.trim()) {
     const { data: existing } = await supabase
@@ -361,10 +382,15 @@ export async function updateClub(
     return err(400, "Invalid club type");
   }
 
+  if (category && !CLUB_CATEGORIES.includes(category as (typeof CLUB_CATEGORIES)[number])) {
+    return err(400, "Invalid club category");
+  }
+
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (name) { updates.name = htmlEscape(name.trim()); updates.initial = htmlEscape(name.trim().charAt(0).toUpperCase()); }
   if (description !== undefined) updates.description = htmlEscape(description);
   if (type) updates.type = type;
+  if (category) updates.category = category;
   if (default_day) updates.default_day = htmlEscape(default_day);
   if (default_location) updates.default_location = htmlEscape(default_location);
   if (chat_link !== undefined) updates.chat_link = htmlEscape(chat_link);

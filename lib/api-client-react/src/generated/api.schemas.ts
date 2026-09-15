@@ -88,11 +88,14 @@ export const ClubSummaryType = {
   Other: "Other",
 } as const;
 
+export type ClubCategory = 'Club' | 'Committee' | 'Union' | 'Team';
+
 export interface ClubSummary {
   id: number;
   name: string;
   description: string;
   type: ClubSummaryType;
+  category: string;
   initial: string;
   default_day: string;
   default_location: string;
@@ -125,6 +128,7 @@ export interface LeadingClub {
   name: string;
   description: string;
   type: LeadingClubType;
+  category: string;
   initial: string;
   default_day: string;
   default_location: string;
@@ -165,6 +169,7 @@ export interface ClubDetail {
   name: string;
   description: string;
   type: ClubDetailType;
+  category: string;
   initial: string;
   default_day: string;
   default_location: string;
@@ -196,6 +201,7 @@ export interface CreateClubBody {
   name: string;
   description: string;
   type: CreateClubBodyType;
+  category?: string;
   default_day: string;
   default_location: string;
   chat_link?: string;
@@ -235,6 +241,7 @@ export interface CalendarEvent {
   id: number;
   club_id: number;
   club_name: string;
+  club_category: string;
   title: string;
   event_date: string;
   event_time: string;
@@ -286,6 +293,7 @@ export interface RequestUploadUrlResponse {
 export type GetClubsParams = {
   limit?: number;
   offset?: number;
+  default_day?: string;
 };
 
 export type GetCalendarEventsParams = {

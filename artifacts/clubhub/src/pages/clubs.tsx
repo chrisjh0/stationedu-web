@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useState } from "react";
 import { useGetClubs, useGetNotifications, getGetNotificationsQueryKey, useGetCalendarEvents, getGetCalendarEventsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
@@ -6,6 +6,7 @@ import { getClubColor } from "@/lib/color-utils";
 import { ClubDetailModal } from "@/components/ClubDetailModal";
 
 export default function ClubsPage() {
+  useEffect(() => { document.title = "Your Clubs — Station"; }, []);
   const { data, isLoading } = useGetClubs({ limit: 200 });
   const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
 
@@ -142,7 +143,7 @@ export default function ClubsPage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
           {enrolledClubs.map(club => {
-            const color = getClubColor(club.id);
+            const color = getClubColor(club.category);
             return (
               <div
                 key={club.id}
@@ -215,7 +216,7 @@ export default function ClubsPage() {
                         letterSpacing: "0.04em",
                         whiteSpace: "nowrap",
                       }}>
-                        {club.type}
+                        {club.category}
                       </span>
                     )}
                   </div>

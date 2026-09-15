@@ -50,7 +50,7 @@ export default function FounderQuote() {
               >
                 Christopher Ho
               </div>
-              <div style={{ fontSize: 13, color: '#79839A' }}>Founder</div>
+              <div style={{ fontSize: 13, color: '#5C6478' }}>Founder</div>
             </div>
           </div>
         </div>

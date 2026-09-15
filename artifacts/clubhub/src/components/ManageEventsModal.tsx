@@ -20,7 +20,7 @@ export function ManageEventsModal({ clubId, onClose }: { clubId: number; onClose
   const [location, setLocation] = useState("");
 
   const club = clubData?.success ? clubData.club : null;
-  const color = club ? getClubColor(club.id) : "var(--primary)";
+  const color = club ? getClubColor(club.category) : "var(--primary)";
   const events = data?.success ? data.events : [];
 
   const invalidateEvents = () => {

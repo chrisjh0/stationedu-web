@@ -1,29 +1,26 @@
-const CATEGORY_COLORS = [
-  '#C56A4A', // arts
-  '#BB8E33', // athletics
-  '#6F9266', // environment
-  '#3C8A84', // stem
-  '#5A7BA6', // academic
-  '#8A5E8C', // culture
-  '#BE6385', // service
-];
+export type ClubCategory = 'Club' | 'Committee' | 'Union' | 'Team';
 
-export function getClubColor(id: number): string {
-  return CATEGORY_COLORS[id % CATEGORY_COLORS.length];
+const CATEGORY_COLOR_MAP: Record<string, string> = {
+  Club: '#DD5E54',
+  Committee: '#232E54',
+  Union: '#3C8A84',
+  Team: '#BB8E33',
+};
+
+const FALLBACK_COLOR = '#DD5E54';
+
+export function getClubColor(category: string): string {
+  return CATEGORY_COLOR_MAP[category] ?? FALLBACK_COLOR;
 }
 
-export function getClubColorClass(id: number): string {
-  // Returns inline style string for backgrounds
-  return CATEGORY_COLORS[id % CATEGORY_COLORS.length];
+export function getClubColorClass(category: string): string {
+  return CATEGORY_COLOR_MAP[category] ?? FALLBACK_COLOR;
 }
 
-export function getClubColorSoft(id: number): string {
-  // Light tint version — used for category badges
-  const hex = CATEGORY_COLORS[id % CATEGORY_COLORS.length];
-  return hex;
+export function getClubColorSoft(category: string): string {
+  return CATEGORY_COLOR_MAP[category] ?? FALLBACK_COLOR;
 }
 
-// Map club type to a display label
 export const CLUB_TYPE_LABELS: Record<string, string> = {
   Club: 'Club',
   Committee: 'Committee',

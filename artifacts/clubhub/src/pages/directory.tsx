@@ -13,6 +13,7 @@ interface ClubItem {
   name: string;
   description: string;
   type: string;
+  category: string;
   initial: string;
   default_day: string;
   default_location: string;
@@ -23,17 +24,25 @@ interface ClubItem {
   member_count: number;
 }
 
-const TYPE_FILTERS = ["All", "Club", "Team", "Committee", "Union"];
+const CATEGORY_FILTERS = ["All", "Club", "Committee", "Union", "Team"] as const;
+const CATEGORY_COLORS: Record<string, string> = {
+  Club: '#DD5E54',
+  Committee: '#232E54',
+  Union: '#3C8A84',
+  Team: '#BB8E33',
+};
+const DAY_OPTIONS = ["Any day", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Daily"] as const;
 
-async function fetchAllClubs(): Promise<ClubItem[]> {
+async function fetchAllClubs(defaultDay?: string): Promise<ClubItem[]> {
   const token = localStorage.getItem("clubhub_token");
   const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
   const result: ClubItem[] = [];
   let offset = 0;
   while (true) {
     let res: Response;
+    const dayParam = defaultDay ? `&default_day=${encodeURIComponent(defaultDay)}` : "";
     try {
-      res = await fetch(`${API_BASE}/api/clubs?limit=${PAGE_SIZE}&offset=${offset}`, { headers });
+      res = await fetch(`${API_BASE}/api/clubs?limit=${PAGE_SIZE}&offset=${offset}${dayParam}`, { headers });
     } catch {
       throw new Error("Network error — check your connection and try again.");
     }
@@ -51,10 +60,12 @@ async function fetchAllClubs(): Promise<ClubItem[]> {
 }
 
 export default function DirectoryPage() {
+  useEffect(() => { document.title = "Directory — Station"; }, []);
   const [allClubs, setAllClubs] = useState<ClubItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [dayFilter, setDayFilter] = useState("Any day");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
 
@@ -62,10 +73,10 @@ export default function DirectoryPage() {
   const enrollMutation = useEnrollInClub();
   const unenrollMutation = useUnenrollFromClub();
 
-  const loadClubs = useCallback(async () => {
+  const loadClubs = useCallback(async (day?: string) => {
     setIsLoading(true);
     try {
-      const clubs = await fetchAllClubs();
+      const clubs = await fetchAllClubs(day && day !== "Any day" ? day : undefined);
       setAllClubs(clubs);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to load clubs");
@@ -76,19 +87,19 @@ export default function DirectoryPage() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadClubs();
-  }, [loadClubs]);
+    loadClubs(dayFilter);
+  }, [loadClubs, dayFilter]);
 
   const filteredClubs = useMemo(() => {
     return allClubs.filter(c => {
       const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
         c.description.toLowerCase().includes(search.toLowerCase());
-      const matchType = typeFilter === "All" || c.type === typeFilter;
-      return matchSearch && matchType;
+      const matchCategory = categoryFilter === "All" || c.category === categoryFilter;
+      return matchSearch && matchCategory;
     });
-  }, [allClubs, search, typeFilter]);
+  }, [allClubs, search, categoryFilter]);
 
-  const categoryCount = useMemo(() => new Set(allClubs.map(c => c.type)).size, [allClubs]);
+  const categoryCount = useMemo(() => new Set(allClubs.map(c => c.category)).size, [allClubs]);
 
   const handleEnroll = (e: React.MouseEvent, club: ClubItem) => {
     e.stopPropagation();
@@ -167,28 +178,69 @@ export default function DirectoryPage() {
         </div>
       </div>
 
-      {/* Filter pills + count */}
+      {/* Filter pills + day dropdown + count */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        {TYPE_FILTERS.map((cat, i) => (
-          <button
-            key={cat}
-            onClick={() => setTypeFilter(cat)}
-            style={{
-              padding: "6px 13px",
-              borderRadius: "var(--r-pill)",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-body)",
-              fontWeight: 600,
-              fontSize: 13,
-              background: typeFilter === cat ? (i === 0 ? "var(--primary)" : "var(--primary)") : "var(--surface-2)",
-              color: typeFilter === cat ? "#fff" : "var(--text-2)",
-              transition: "background 0.14s, color 0.14s",
-            }}
-          >
-            {cat}
-          </button>
-        ))}
+        {CATEGORY_FILTERS.map(cat => {
+          const color = cat === "All" ? undefined : CATEGORY_COLORS[cat];
+          const isActive = categoryFilter === cat;
+          return (
+            <button
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 13px",
+                borderRadius: "var(--r-pill)",
+                border: isActive ? "none" : "1px solid var(--border-strong)",
+                cursor: "pointer",
+                fontFamily: "var(--font-body)",
+                fontWeight: 600,
+                fontSize: 13,
+                background: isActive ? "var(--primary)" : "var(--surface-2)",
+                color: isActive ? "#fff" : "var(--text-2)",
+                transition: "background 0.14s, color 0.14s",
+              }}
+            >
+              {color && (
+                <span style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: isActive ? "rgba(255,255,255,0.7)" : color,
+                  flexShrink: 0,
+                }} />
+              )}
+              {cat}
+            </button>
+          );
+        })}
+
+        <select
+          value={dayFilter}
+          onChange={e => setDayFilter(e.target.value)}
+          style={{
+            height: 34,
+            padding: "0 28px 0 10px",
+            borderRadius: "var(--r-pill)",
+            border: dayFilter !== "Any day" ? "none" : "1px solid var(--border-strong)",
+            background: dayFilter !== "Any day" ? "var(--primary)" : "var(--surface-2)",
+            color: dayFilter !== "Any day" ? "#fff" : "var(--text-2)",
+            fontFamily: "var(--font-body)",
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: "pointer",
+            appearance: "none",
+            WebkitAppearance: "none",
+          }}
+        >
+          {DAY_OPTIONS.map(d => (
+            <option key={d} value={d} style={{ background: "var(--surface)", color: "var(--text)" }}>{d}</option>
+          ))}
+        </select>
+
         <span style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-3)", letterSpacing: "0.06em" }}>
           SHOWING {filteredClubs.length} OF {allClubs.length}
         </span>
@@ -225,7 +277,7 @@ export default function DirectoryPage() {
           </div>
 
           {filteredClubs.map((club, idx) => {
-            const color = getClubColor(club.id);
+            const color = getClubColor(club.category);
             return (
               <div
                 key={club.id}
@@ -270,7 +322,7 @@ export default function DirectoryPage() {
                     background: color, color: "#fff",
                     textTransform: "uppercase", letterSpacing: "0.04em",
                   }}>
-                    {club.type}
+                    {club.category}
                   </span>
                 </div>
 
@@ -328,7 +380,7 @@ export default function DirectoryPage() {
         /* ── GRID VIEW ── */
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
           {filteredClubs.map(club => {
-            const color = getClubColor(club.id);
+            const color = getClubColor(club.category);
             return (
               <div
                 key={club.id}
@@ -349,7 +401,7 @@ export default function DirectoryPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <span style={{ fontWeight: 700, fontSize: 14, color: "var(--heading)" }}>{club.name}</span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, padding: "3px 8px", borderRadius: "var(--r-pill)", background: color, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap", flexShrink: 0 }}>
-                      {club.type}
+                      {club.category}
                     </span>
                   </div>
                   <div style={{ fontSize: 12.5, color: "var(--text-2)", margin: "4px 0 10px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>

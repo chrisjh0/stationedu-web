@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useGetLeadingClubs, useDeleteClub, getGetLeadingClubsQueryKey, getGetClubsQueryKey } from "@workspace/api-client-react";
 import { getClubColor } from "@/lib/color-utils";
 import { ClubDetailModal } from "@/components/ClubDetailModal";
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 
 export default function LeadershipPage() {
+  useEffect(() => { document.title = "Leadership Hub — Station"; }, []);
   const { data, isLoading } = useGetLeadingClubs();
   const deleteMutation = useDeleteClub();
   const queryClient = useQueryClient();
@@ -133,7 +134,7 @@ export default function LeadershipPage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
           {clubs.map(club => {
-            const color = getClubColor(club.id);
+            const color = getClubColor(club.category);
             return (
               <div
                 key={club.id}

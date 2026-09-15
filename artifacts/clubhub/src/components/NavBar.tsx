@@ -86,7 +86,7 @@ export function NavBar() {
           fontSize: 10,
           letterSpacing: "0.14em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.4)",
+          color: "rgba(255,255,255,0.55)",
           padding: "0 10px 12px",
         }}>
           Athenian School

@@ -15,6 +15,7 @@ interface Club {
   id: number;
   name: string;
   type: string;
+  category: string;
   description: string;
   default_day: string;
   default_location: string;
@@ -51,6 +52,7 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
 
   const [name, setName] = useState(club.name);
   const [type, setType] = useState(club.type);
+  const [category, setCategory] = useState(club.category || "Club");
   const [description, setDescription] = useState(club.description);
   const [day, setDay] = useState(club.default_day);
   const [location, setLocation] = useState(club.default_location);
@@ -71,6 +73,7 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
       data: {
         name,
         type: type as CreateClubBodyType,
+        category,
         description,
         default_day: day,
         default_location: location,
@@ -97,7 +100,7 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
       </DialogHeader>
 
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-secondary">Club Name *</label>
             <Input value={name} onChange={e => setName(e.target.value)} className="h-11 rounded-xl bg-surface" />
@@ -114,6 +117,20 @@ function EditClubForm({ club, onClose }: { club: Club; onClose: () => void }) {
                 <SelectItem value="Team">Team</SelectItem>
                 <SelectItem value="Union">Union</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-secondary">Category *</label>
+            <Select value={category} onValueChange={(v: string) => setCategory(v)}>
+              <SelectTrigger className="h-11 rounded-xl bg-surface">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Club">Club</SelectItem>
+                <SelectItem value="Committee">Committee</SelectItem>
+                <SelectItem value="Union">Union</SelectItem>
+                <SelectItem value="Team">Team</SelectItem>
               </SelectContent>
             </Select>
           </div>

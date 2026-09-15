@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useGetUserSettings, useUpdateUserSettings, getGetUserSettingsQueryKey } from "@workspace/api-client-react";
 import { useAuth } from "@/components/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,6 +29,7 @@ const TABS = [
 ];
 
 export default function SettingsPage() {
+  useEffect(() => { document.title = "Settings — Station"; }, []);
   const { data, isLoading } = useGetUserSettings();
   const [activeTab, setActiveTab] = useState("Account");
 

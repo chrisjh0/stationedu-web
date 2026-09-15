@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useGetClubs, getGetClubsQueryKey } from "@workspace/api-client-react";
 
 interface AdminStats {
@@ -15,11 +15,11 @@ interface AdminStats {
 }
 
 const CAT_COLORS: Record<string, string> = {
-  Club: "#5A7BA6",
+  Club: "#DD5E54",
+  Committee: "#232E54",
+  Union: "#3C8A84",
   Team: "#BB8E33",
-  Committee: "#3C8A84",
-  Union: "#8A5E8C",
-  Other: "#BE6385",
+  Other: "#79839A",
 };
 
 function DonutChart({ pct, size = 156 }: { pct: number; size?: number }) {
@@ -47,6 +47,7 @@ function DonutChart({ pct, size = 156 }: { pct: number; size?: number }) {
 }
 
 export default function AdminPage() {
+  useEffect(() => { document.title = "Admin — Station"; }, []);
   const [activeTab, setActiveTab] = useState<"analytics" | "permissions">("analytics");
   const { data: clubsData } = useGetClubs({ limit: 1000 }, {
     query: { queryKey: getGetClubsQueryKey({ limit: 1000 }) }
@@ -56,9 +57,9 @@ export default function AdminPage() {
     const clubs = clubsData?.success ? clubsData.clubs : [];
     const totalClubs = clubs.length;
 
-    // Category distribution from club types
+    // Category distribution from club categories
     const typeCount: Record<string, number> = {};
-    for (const c of clubs) { typeCount[c.type] = (typeCount[c.type] ?? 0) + 1; }
+    for (const c of clubs) { typeCount[c.category] = (typeCount[c.category] ?? 0) + 1; }
     const categoryDistribution = Object.entries(typeCount).map(([name, count]) => ({
       name,
       color: CAT_COLORS[name] ?? "#79839A",

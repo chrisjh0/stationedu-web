@@ -17,6 +17,7 @@ import LeadershipPage from "@/pages/leadership";
 import DirectoryPage from "@/pages/directory";
 import SettingsPage from "@/pages/settings";
 import AdminPage from "@/pages/admin";
+import AccessibilityPage from "@/pages/accessibility";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -96,6 +97,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/accessibility" component={AccessibilityPage} />
       <Route path="/">
         <Redirect to="/calendar" />
       </Route>

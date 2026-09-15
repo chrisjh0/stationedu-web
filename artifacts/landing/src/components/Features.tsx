@@ -116,7 +116,7 @@ export default function Features() {
                   fontSize: 11,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  color: '#79839A',
+                  color: '#5C6478',
                   display: 'inline-block',
                   marginBottom: 18,
                 }}

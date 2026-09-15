@@ -17,7 +17,7 @@
   /* Text */
   --text:    #181D29;
   --text-2:  #4C5567;
-  --text-3:  #79839A;
+  --text-3:  #5C6478;
   --heading: #121726;
 
   /* Brand: Ink Navy */
@@ -207,6 +207,12 @@
    Utility layer
    ============================================================ */
 @layer utilities {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: var(--r-xs);
+  }
+
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }

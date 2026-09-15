@@ -8,13 +8,18 @@ import FounderQuote from './components/FounderQuote'
 import FinalCTA from './components/FinalCTA'
 import Footer from './components/Footer'
 import EmailClientPicker from './components/EmailClientPicker'
+import Accessibility from './pages/Accessibility'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
 
 const MAILTO = `mailto:31christopherho@gmail.com?subject=${encodeURIComponent('Demo Request — Station')}`
 
 const isMobile = () =>
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
-export default function App() {
+const path = window.location.pathname
+
+function HomePage() {
   const [pickerOpen, setPickerOpen] = useState(false)
 
   const handleDemoClick = () => {
@@ -40,4 +45,11 @@ export default function App() {
       <EmailClientPicker open={pickerOpen} onClose={() => setPickerOpen(false)} />
     </>
   )
+}
+
+export default function App() {
+  if (path === '/accessibility') return <Accessibility />
+  if (path === '/privacy') return <Privacy />
+  if (path === '/terms') return <Terms />
+  return <HomePage />
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useGetCalendarEvents, getGetCalendarEventsQueryKey, useEnrollInClub, getGetClubsQueryKey } from "@workspace/api-client-react";
 import { ClubDetailModal } from "@/components/ClubDetailModal";
 import { getClubColor } from "@/lib/color-utils";
@@ -13,6 +13,7 @@ import {
 type ViewMode = "daily" | "monthly";
 
 export default function CalendarPage() {
+  useEffect(() => { document.title = "Calendar — Station"; }, []);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("daily");
@@ -165,7 +166,7 @@ export default function CalendarPage() {
               const isToday = isSameDay(day, today);
               const dayStr = format(day, "yyyy-MM-dd");
               const dayEventColors = [...new Set(
-                events.filter(e => e.event_date === dayStr).map(e => getClubColor(e.club_id))
+                events.filter(e => e.event_date === dayStr).map(e => getClubColor(e.club_category))
               )];
 
               return (
@@ -252,7 +253,7 @@ export default function CalendarPage() {
                 const minute = event.event_time.split(":")[1];
                 const isPM = hour >= 12;
                 const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                const color = getClubColor(event.club_id);
+                const color = getClubColor(event.club_category);
 
                 return (
                   <div
@@ -450,7 +451,7 @@ export default function CalendarPage() {
                       fontSize: 10.5,
                       fontWeight: 700,
                       color: "#fff",
-                      background: getClubColor(evt.club_id),
+                      background: getClubColor(evt.club_category),
                       borderRadius: 4,
                       padding: "2px 6px",
                       whiteSpace: "nowrap",
