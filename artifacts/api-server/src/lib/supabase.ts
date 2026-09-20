@@ -10,7 +10,7 @@ export const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY,
   {
     realtime: {
-      transport: ws,
+      transport: ws as unknown as typeof WebSocket,
     },
   }
 );

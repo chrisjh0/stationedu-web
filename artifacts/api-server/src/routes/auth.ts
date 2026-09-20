@@ -105,7 +105,14 @@ router.get("/auth/google/callback", async (req, res) => {
       return;
     }
 
-    if (ALLOWED_EMAIL_DOMAIN && !profile.email.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) {
+    const allowedEmails = (process.env.ALLOWED_EMAILS || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    const emailLower = profile.email.toLowerCase();
+    const inEmailWhitelist = allowedEmails.length > 0 && allowedEmails.includes(emailLower);
+
+    if (!inEmailWhitelist && ALLOWED_EMAIL_DOMAIN && !profile.email.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) {
       res.redirect(`${FRONTEND_URL}/login?error=domain`);
       return;
     }
